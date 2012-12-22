@@ -14,13 +14,6 @@ class ATermBase(object):
     def __init__(self, annotation=None):
         self.annotation = annotation
 
-    @property
-    def metastr(self):
-        if self.annotation:
-            return str(self.annotation)
-        else:
-            return ''
-
 class ATerm(ATermBase):
 
     def __init__(self, label, **kwargs):
@@ -186,7 +179,7 @@ class AList(ATermBase):
         return str(self)
 
 #------------------------------------------------------------------------
-# AST Nodes
+# Named Tuple Implementation
 #------------------------------------------------------------------------
 
 aterm = namedtuple('aterm', ('term', 'annotation'))
@@ -196,10 +189,3 @@ areal = namedtuple('areal', ('val',))
 aappl = namedtuple('aappl', ('spine', 'args'))
 atupl = namedtuple('atupl', ('args'))
 aplaceholder = namedtuple('aplaceholder', ('type','args'))
-
-INT  = 0
-STR  = 1
-BLOB = 2
-TERM = 3
-APPL = 4
-LIST = 5
