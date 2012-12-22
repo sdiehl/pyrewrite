@@ -22,9 +22,9 @@ False
 
 ```python
 >>> from rewrite import match
->>> matches('f(<term>)', 'f(x)')
+>>> match('f(<term>)', 'f(x)')
 x
 
->>> matches('f(<term>,<int>)', 'f(x,1)')
+>>> match('f(<term>,<int>)', 'f(x,1)')
 [aterm('x'), aint('1')]
 ```
