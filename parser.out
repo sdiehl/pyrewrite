@@ -1,0 +1,873 @@
+Created by PLY version 3.4 (http://www.dabeaz.com/ply)
+
+Unused terminals:
+
+    QUOTE
+
+Grammar
+
+Rule 0     S' -> expr
+Rule 1     expr -> avalue
+Rule 2     expr -> value
+Rule 3     avalue -> value { annotation }
+Rule 4     value -> term
+Rule 5     value -> appl
+Rule 6     value -> list
+Rule 7     value -> tuple
+Rule 8     value -> string
+Rule 9     value -> placeholder
+Rule 10    value -> empty
+Rule 11    term -> DOUBLE
+Rule 12    term -> INT
+Rule 13    term -> NAME
+Rule 14    annotation -> value
+Rule 15    annotation -> annotation , annotation
+Rule 16    appl -> term ( appl_value )
+Rule 17    appl_value -> expr
+Rule 18    appl_value -> appl_value , appl_value
+Rule 19    list -> [ list_value ]
+Rule 20    list_value -> expr
+Rule 21    list_value -> list_value , list_value
+Rule 22    tuple -> ( list_value )
+Rule 23    tuple_value -> expr
+Rule 24    tuple_value -> tuple_value , tuple_value
+Rule 25    string -> STRING
+Rule 26    placeholder -> < PLACEHOLDER ( appl_value ) >
+Rule 27    placeholder -> < PLACEHOLDER >
+Rule 28    empty -> <empty>
+
+Terminals, with rules where they appear
+
+(                    : 16 22 26
+)                    : 16 22 26
+,                    : 15 18 21 24
+<                    : 26 27
+>                    : 26 27
+DOUBLE               : 11
+INT                  : 12
+NAME                 : 13
+PLACEHOLDER          : 26 27
+QUOTE                : 
+STRING               : 25
+[                    : 19
+]                    : 19
+error                : 
+{                    : 3
+}                    : 3
+
+Nonterminals, with rules where they appear
+
+annotation           : 3 15 15
+appl                 : 5
+appl_value           : 16 18 18 26
+avalue               : 1
+empty                : 10
+expr                 : 17 20 23 0
+list                 : 6
+list_value           : 19 21 21 22
+placeholder          : 9
+string               : 8
+term                 : 4 16
+tuple                : 7
+tuple_value          : 24 24
+value                : 2 3 14
+
+Parsing method: LALR
+
+state 0
+
+    (0) S' -> . expr
+    (1) expr -> . avalue
+    (2) expr -> . value
+    (3) avalue -> . value { annotation }
+    (4) value -> . term
+    (5) value -> . appl
+    (6) value -> . list
+    (7) value -> . tuple
+    (8) value -> . string
+    (9) value -> . placeholder
+    (10) value -> . empty
+    (11) term -> . DOUBLE
+    (12) term -> . INT
+    (13) term -> . NAME
+    (16) appl -> . term ( appl_value )
+    (19) list -> . [ list_value ]
+    (22) tuple -> . ( list_value )
+    (25) string -> . STRING
+    (26) placeholder -> . < PLACEHOLDER ( appl_value ) >
+    (27) placeholder -> . < PLACEHOLDER >
+    (28) empty -> .
+
+    DOUBLE          shift and go to state 17
+    INT             shift and go to state 13
+    NAME            shift and go to state 12
+    [               shift and go to state 9
+    (               shift and go to state 3
+    STRING          shift and go to state 1
+    <               shift and go to state 5
+    {               reduce using rule 28 (empty -> .)
+    $end            reduce using rule 28 (empty -> .)
+
+    term                           shift and go to state 11
+    string                         shift and go to state 7
+    avalue                         shift and go to state 2
+    tuple                          shift and go to state 8
+    expr                           shift and go to state 14
+    list                           shift and go to state 15
+    value                          shift and go to state 16
+    appl                           shift and go to state 4
+    placeholder                    shift and go to state 10
+    empty                          shift and go to state 6
+
+state 1
+
+    (25) string -> STRING .
+
+    {               reduce using rule 25 (string -> STRING .)
+    )               reduce using rule 25 (string -> STRING .)
+    ,               reduce using rule 25 (string -> STRING .)
+    }               reduce using rule 25 (string -> STRING .)
+    ]               reduce using rule 25 (string -> STRING .)
+    $end            reduce using rule 25 (string -> STRING .)
+
+
+state 2
+
+    (1) expr -> avalue .
+
+    ]               reduce using rule 1 (expr -> avalue .)
+    ,               reduce using rule 1 (expr -> avalue .)
+    )               reduce using rule 1 (expr -> avalue .)
+    $end            reduce using rule 1 (expr -> avalue .)
+
+
+state 3
+
+    (22) tuple -> ( . list_value )
+    (20) list_value -> . expr
+    (21) list_value -> . list_value , list_value
+    (1) expr -> . avalue
+    (2) expr -> . value
+    (3) avalue -> . value { annotation }
+    (4) value -> . term
+    (5) value -> . appl
+    (6) value -> . list
+    (7) value -> . tuple
+    (8) value -> . string
+    (9) value -> . placeholder
+    (10) value -> . empty
+    (11) term -> . DOUBLE
+    (12) term -> . INT
+    (13) term -> . NAME
+    (16) appl -> . term ( appl_value )
+    (19) list -> . [ list_value ]
+    (22) tuple -> . ( list_value )
+    (25) string -> . STRING
+    (26) placeholder -> . < PLACEHOLDER ( appl_value ) >
+    (27) placeholder -> . < PLACEHOLDER >
+    (28) empty -> .
+
+    DOUBLE          shift and go to state 17
+    INT             shift and go to state 13
+    NAME            shift and go to state 12
+    [               shift and go to state 9
+    (               shift and go to state 3
+    STRING          shift and go to state 1
+    <               shift and go to state 5
+    {               reduce using rule 28 (empty -> .)
+    )               reduce using rule 28 (empty -> .)
+    ,               reduce using rule 28 (empty -> .)
+
+    term                           shift and go to state 11
+    string                         shift and go to state 7
+    avalue                         shift and go to state 2
+    tuple                          shift and go to state 8
+    expr                           shift and go to state 19
+    list                           shift and go to state 15
+    value                          shift and go to state 16
+    appl                           shift and go to state 4
+    list_value                     shift and go to state 18
+    placeholder                    shift and go to state 10
+    empty                          shift and go to state 6
+
+state 4
+
+    (5) value -> appl .
+
+    {               reduce using rule 5 (value -> appl .)
+    ]               reduce using rule 5 (value -> appl .)
+    ,               reduce using rule 5 (value -> appl .)
+    )               reduce using rule 5 (value -> appl .)
+    $end            reduce using rule 5 (value -> appl .)
+    }               reduce using rule 5 (value -> appl .)
+
+
+state 5
+
+    (26) placeholder -> < . PLACEHOLDER ( appl_value ) >
+    (27) placeholder -> < . PLACEHOLDER >
+
+    PLACEHOLDER     shift and go to state 20
+
+
+state 6
+
+    (10) value -> empty .
+
+    {               reduce using rule 10 (value -> empty .)
+    ]               reduce using rule 10 (value -> empty .)
+    ,               reduce using rule 10 (value -> empty .)
+    )               reduce using rule 10 (value -> empty .)
+    $end            reduce using rule 10 (value -> empty .)
+    }               reduce using rule 10 (value -> empty .)
+
+
+state 7
+
+    (8) value -> string .
+
+    {               reduce using rule 8 (value -> string .)
+    ]               reduce using rule 8 (value -> string .)
+    ,               reduce using rule 8 (value -> string .)
+    )               reduce using rule 8 (value -> string .)
+    $end            reduce using rule 8 (value -> string .)
+    }               reduce using rule 8 (value -> string .)
+
+
+state 8
+
+    (7) value -> tuple .
+
+    {               reduce using rule 7 (value -> tuple .)
+    ]               reduce using rule 7 (value -> tuple .)
+    ,               reduce using rule 7 (value -> tuple .)
+    )               reduce using rule 7 (value -> tuple .)
+    $end            reduce using rule 7 (value -> tuple .)
+    }               reduce using rule 7 (value -> tuple .)
+
+
+state 9
+
+    (19) list -> [ . list_value ]
+    (20) list_value -> . expr
+    (21) list_value -> . list_value , list_value
+    (1) expr -> . avalue
+    (2) expr -> . value
+    (3) avalue -> . value { annotation }
+    (4) value -> . term
+    (5) value -> . appl
+    (6) value -> . list
+    (7) value -> . tuple
+    (8) value -> . string
+    (9) value -> . placeholder
+    (10) value -> . empty
+    (11) term -> . DOUBLE
+    (12) term -> . INT
+    (13) term -> . NAME
+    (16) appl -> . term ( appl_value )
+    (19) list -> . [ list_value ]
+    (22) tuple -> . ( list_value )
+    (25) string -> . STRING
+    (26) placeholder -> . < PLACEHOLDER ( appl_value ) >
+    (27) placeholder -> . < PLACEHOLDER >
+    (28) empty -> .
+
+    DOUBLE          shift and go to state 17
+    INT             shift and go to state 13
+    NAME            shift and go to state 12
+    [               shift and go to state 9
+    (               shift and go to state 3
+    STRING          shift and go to state 1
+    <               shift and go to state 5
+    {               reduce using rule 28 (empty -> .)
+    ]               reduce using rule 28 (empty -> .)
+    ,               reduce using rule 28 (empty -> .)
+
+    term                           shift and go to state 11
+    string                         shift and go to state 7
+    avalue                         shift and go to state 2
+    tuple                          shift and go to state 8
+    expr                           shift and go to state 19
+    list                           shift and go to state 15
+    value                          shift and go to state 16
+    appl                           shift and go to state 4
+    list_value                     shift and go to state 21
+    placeholder                    shift and go to state 10
+    empty                          shift and go to state 6
+
+state 10
+
+    (9) value -> placeholder .
+
+    {               reduce using rule 9 (value -> placeholder .)
+    ]               reduce using rule 9 (value -> placeholder .)
+    ,               reduce using rule 9 (value -> placeholder .)
+    )               reduce using rule 9 (value -> placeholder .)
+    $end            reduce using rule 9 (value -> placeholder .)
+    }               reduce using rule 9 (value -> placeholder .)
+
+
+state 11
+
+    (4) value -> term .
+    (16) appl -> term . ( appl_value )
+
+    {               reduce using rule 4 (value -> term .)
+    ]               reduce using rule 4 (value -> term .)
+    ,               reduce using rule 4 (value -> term .)
+    )               reduce using rule 4 (value -> term .)
+    $end            reduce using rule 4 (value -> term .)
+    }               reduce using rule 4 (value -> term .)
+    (               shift and go to state 22
+
+
+state 12
+
+    (13) term -> NAME .
+
+    (               reduce using rule 13 (term -> NAME .)
+    {               reduce using rule 13 (term -> NAME .)
+    )               reduce using rule 13 (term -> NAME .)
+    ,               reduce using rule 13 (term -> NAME .)
+    }               reduce using rule 13 (term -> NAME .)
+    $end            reduce using rule 13 (term -> NAME .)
+    ]               reduce using rule 13 (term -> NAME .)
+
+
+state 13
+
+    (12) term -> INT .
+
+    (               reduce using rule 12 (term -> INT .)
+    {               reduce using rule 12 (term -> INT .)
+    )               reduce using rule 12 (term -> INT .)
+    ,               reduce using rule 12 (term -> INT .)
+    }               reduce using rule 12 (term -> INT .)
+    $end            reduce using rule 12 (term -> INT .)
+    ]               reduce using rule 12 (term -> INT .)
+
+
+state 14
+
+    (0) S' -> expr .
+
+
+
+state 15
+
+    (6) value -> list .
+
+    {               reduce using rule 6 (value -> list .)
+    ]               reduce using rule 6 (value -> list .)
+    ,               reduce using rule 6 (value -> list .)
+    )               reduce using rule 6 (value -> list .)
+    $end            reduce using rule 6 (value -> list .)
+    }               reduce using rule 6 (value -> list .)
+
+
+state 16
+
+    (2) expr -> value .
+    (3) avalue -> value . { annotation }
+
+    ]               reduce using rule 2 (expr -> value .)
+    ,               reduce using rule 2 (expr -> value .)
+    )               reduce using rule 2 (expr -> value .)
+    $end            reduce using rule 2 (expr -> value .)
+    {               shift and go to state 23
+
+
+state 17
+
+    (11) term -> DOUBLE .
+
+    (               reduce using rule 11 (term -> DOUBLE .)
+    {               reduce using rule 11 (term -> DOUBLE .)
+    )               reduce using rule 11 (term -> DOUBLE .)
+    ,               reduce using rule 11 (term -> DOUBLE .)
+    }               reduce using rule 11 (term -> DOUBLE .)
+    $end            reduce using rule 11 (term -> DOUBLE .)
+    ]               reduce using rule 11 (term -> DOUBLE .)
+
+
+state 18
+
+    (22) tuple -> ( list_value . )
+    (21) list_value -> list_value . , list_value
+
+    )               shift and go to state 24
+    ,               shift and go to state 25
+
+
+state 19
+
+    (20) list_value -> expr .
+
+    )               reduce using rule 20 (list_value -> expr .)
+    ,               reduce using rule 20 (list_value -> expr .)
+    ]               reduce using rule 20 (list_value -> expr .)
+
+
+state 20
+
+    (26) placeholder -> < PLACEHOLDER . ( appl_value ) >
+    (27) placeholder -> < PLACEHOLDER . >
+
+    (               shift and go to state 26
+    >               shift and go to state 27
+
+
+state 21
+
+    (19) list -> [ list_value . ]
+    (21) list_value -> list_value . , list_value
+
+    ]               shift and go to state 28
+    ,               shift and go to state 25
+
+
+state 22
+
+    (16) appl -> term ( . appl_value )
+    (17) appl_value -> . expr
+    (18) appl_value -> . appl_value , appl_value
+    (1) expr -> . avalue
+    (2) expr -> . value
+    (3) avalue -> . value { annotation }
+    (4) value -> . term
+    (5) value -> . appl
+    (6) value -> . list
+    (7) value -> . tuple
+    (8) value -> . string
+    (9) value -> . placeholder
+    (10) value -> . empty
+    (11) term -> . DOUBLE
+    (12) term -> . INT
+    (13) term -> . NAME
+    (16) appl -> . term ( appl_value )
+    (19) list -> . [ list_value ]
+    (22) tuple -> . ( list_value )
+    (25) string -> . STRING
+    (26) placeholder -> . < PLACEHOLDER ( appl_value ) >
+    (27) placeholder -> . < PLACEHOLDER >
+    (28) empty -> .
+
+    DOUBLE          shift and go to state 17
+    INT             shift and go to state 13
+    NAME            shift and go to state 12
+    [               shift and go to state 9
+    (               shift and go to state 3
+    STRING          shift and go to state 1
+    <               shift and go to state 5
+    {               reduce using rule 28 (empty -> .)
+    )               reduce using rule 28 (empty -> .)
+    ,               reduce using rule 28 (empty -> .)
+
+    term                           shift and go to state 11
+    string                         shift and go to state 7
+    avalue                         shift and go to state 2
+    tuple                          shift and go to state 8
+    expr                           shift and go to state 30
+    list                           shift and go to state 15
+    value                          shift and go to state 16
+    appl                           shift and go to state 4
+    placeholder                    shift and go to state 10
+    empty                          shift and go to state 6
+    appl_value                     shift and go to state 29
+
+state 23
+
+    (3) avalue -> value { . annotation }
+    (14) annotation -> . value
+    (15) annotation -> . annotation , annotation
+    (4) value -> . term
+    (5) value -> . appl
+    (6) value -> . list
+    (7) value -> . tuple
+    (8) value -> . string
+    (9) value -> . placeholder
+    (10) value -> . empty
+    (11) term -> . DOUBLE
+    (12) term -> . INT
+    (13) term -> . NAME
+    (16) appl -> . term ( appl_value )
+    (19) list -> . [ list_value ]
+    (22) tuple -> . ( list_value )
+    (25) string -> . STRING
+    (26) placeholder -> . < PLACEHOLDER ( appl_value ) >
+    (27) placeholder -> . < PLACEHOLDER >
+    (28) empty -> .
+
+    DOUBLE          shift and go to state 17
+    INT             shift and go to state 13
+    NAME            shift and go to state 12
+    [               shift and go to state 9
+    (               shift and go to state 3
+    STRING          shift and go to state 1
+    <               shift and go to state 5
+    }               reduce using rule 28 (empty -> .)
+    ,               reduce using rule 28 (empty -> .)
+
+    term                           shift and go to state 11
+    string                         shift and go to state 7
+    tuple                          shift and go to state 8
+    list                           shift and go to state 15
+    value                          shift and go to state 32
+    appl                           shift and go to state 4
+    placeholder                    shift and go to state 10
+    annotation                     shift and go to state 31
+    empty                          shift and go to state 6
+
+state 24
+
+    (22) tuple -> ( list_value ) .
+
+    {               reduce using rule 22 (tuple -> ( list_value ) .)
+    )               reduce using rule 22 (tuple -> ( list_value ) .)
+    ,               reduce using rule 22 (tuple -> ( list_value ) .)
+    }               reduce using rule 22 (tuple -> ( list_value ) .)
+    ]               reduce using rule 22 (tuple -> ( list_value ) .)
+    $end            reduce using rule 22 (tuple -> ( list_value ) .)
+
+
+state 25
+
+    (21) list_value -> list_value , . list_value
+    (20) list_value -> . expr
+    (21) list_value -> . list_value , list_value
+    (1) expr -> . avalue
+    (2) expr -> . value
+    (3) avalue -> . value { annotation }
+    (4) value -> . term
+    (5) value -> . appl
+    (6) value -> . list
+    (7) value -> . tuple
+    (8) value -> . string
+    (9) value -> . placeholder
+    (10) value -> . empty
+    (11) term -> . DOUBLE
+    (12) term -> . INT
+    (13) term -> . NAME
+    (16) appl -> . term ( appl_value )
+    (19) list -> . [ list_value ]
+    (22) tuple -> . ( list_value )
+    (25) string -> . STRING
+    (26) placeholder -> . < PLACEHOLDER ( appl_value ) >
+    (27) placeholder -> . < PLACEHOLDER >
+    (28) empty -> .
+
+    DOUBLE          shift and go to state 17
+    INT             shift and go to state 13
+    NAME            shift and go to state 12
+    [               shift and go to state 9
+    (               shift and go to state 3
+    STRING          shift and go to state 1
+    <               shift and go to state 5
+    {               reduce using rule 28 (empty -> .)
+    ,               reduce using rule 28 (empty -> .)
+    )               reduce using rule 28 (empty -> .)
+    ]               reduce using rule 28 (empty -> .)
+
+    term                           shift and go to state 11
+    string                         shift and go to state 7
+    avalue                         shift and go to state 2
+    tuple                          shift and go to state 8
+    expr                           shift and go to state 19
+    list                           shift and go to state 15
+    value                          shift and go to state 16
+    appl                           shift and go to state 4
+    list_value                     shift and go to state 33
+    placeholder                    shift and go to state 10
+    empty                          shift and go to state 6
+
+state 26
+
+    (26) placeholder -> < PLACEHOLDER ( . appl_value ) >
+    (17) appl_value -> . expr
+    (18) appl_value -> . appl_value , appl_value
+    (1) expr -> . avalue
+    (2) expr -> . value
+    (3) avalue -> . value { annotation }
+    (4) value -> . term
+    (5) value -> . appl
+    (6) value -> . list
+    (7) value -> . tuple
+    (8) value -> . string
+    (9) value -> . placeholder
+    (10) value -> . empty
+    (11) term -> . DOUBLE
+    (12) term -> . INT
+    (13) term -> . NAME
+    (16) appl -> . term ( appl_value )
+    (19) list -> . [ list_value ]
+    (22) tuple -> . ( list_value )
+    (25) string -> . STRING
+    (26) placeholder -> . < PLACEHOLDER ( appl_value ) >
+    (27) placeholder -> . < PLACEHOLDER >
+    (28) empty -> .
+
+    DOUBLE          shift and go to state 17
+    INT             shift and go to state 13
+    NAME            shift and go to state 12
+    [               shift and go to state 9
+    (               shift and go to state 3
+    STRING          shift and go to state 1
+    <               shift and go to state 5
+    {               reduce using rule 28 (empty -> .)
+    )               reduce using rule 28 (empty -> .)
+    ,               reduce using rule 28 (empty -> .)
+
+    term                           shift and go to state 11
+    string                         shift and go to state 7
+    avalue                         shift and go to state 2
+    tuple                          shift and go to state 8
+    expr                           shift and go to state 30
+    list                           shift and go to state 15
+    value                          shift and go to state 16
+    appl                           shift and go to state 4
+    placeholder                    shift and go to state 10
+    empty                          shift and go to state 6
+    appl_value                     shift and go to state 34
+
+state 27
+
+    (27) placeholder -> < PLACEHOLDER > .
+
+    }               reduce using rule 27 (placeholder -> < PLACEHOLDER > .)
+    ,               reduce using rule 27 (placeholder -> < PLACEHOLDER > .)
+    {               reduce using rule 27 (placeholder -> < PLACEHOLDER > .)
+    )               reduce using rule 27 (placeholder -> < PLACEHOLDER > .)
+    $end            reduce using rule 27 (placeholder -> < PLACEHOLDER > .)
+    ]               reduce using rule 27 (placeholder -> < PLACEHOLDER > .)
+
+
+state 28
+
+    (19) list -> [ list_value ] .
+
+    {               reduce using rule 19 (list -> [ list_value ] .)
+    )               reduce using rule 19 (list -> [ list_value ] .)
+    ,               reduce using rule 19 (list -> [ list_value ] .)
+    ]               reduce using rule 19 (list -> [ list_value ] .)
+    $end            reduce using rule 19 (list -> [ list_value ] .)
+    }               reduce using rule 19 (list -> [ list_value ] .)
+
+
+state 29
+
+    (16) appl -> term ( appl_value . )
+    (18) appl_value -> appl_value . , appl_value
+
+    )               shift and go to state 35
+    ,               shift and go to state 36
+
+
+state 30
+
+    (17) appl_value -> expr .
+
+    )               reduce using rule 17 (appl_value -> expr .)
+    ,               reduce using rule 17 (appl_value -> expr .)
+
+
+state 31
+
+    (3) avalue -> value { annotation . }
+    (15) annotation -> annotation . , annotation
+
+    }               shift and go to state 37
+    ,               shift and go to state 38
+
+
+state 32
+
+    (14) annotation -> value .
+
+    }               reduce using rule 14 (annotation -> value .)
+    ,               reduce using rule 14 (annotation -> value .)
+
+
+state 33
+
+    (21) list_value -> list_value , list_value .
+    (21) list_value -> list_value . , list_value
+
+  ! shift/reduce conflict for , resolved as shift
+    )               reduce using rule 21 (list_value -> list_value , list_value .)
+    ]               reduce using rule 21 (list_value -> list_value , list_value .)
+    ,               shift and go to state 25
+
+  ! ,               [ reduce using rule 21 (list_value -> list_value , list_value .) ]
+
+
+state 34
+
+    (26) placeholder -> < PLACEHOLDER ( appl_value . ) >
+    (18) appl_value -> appl_value . , appl_value
+
+    )               shift and go to state 39
+    ,               shift and go to state 36
+
+
+state 35
+
+    (16) appl -> term ( appl_value ) .
+
+    {               reduce using rule 16 (appl -> term ( appl_value ) .)
+    ,               reduce using rule 16 (appl -> term ( appl_value ) .)
+    )               reduce using rule 16 (appl -> term ( appl_value ) .)
+    ]               reduce using rule 16 (appl -> term ( appl_value ) .)
+    $end            reduce using rule 16 (appl -> term ( appl_value ) .)
+    }               reduce using rule 16 (appl -> term ( appl_value ) .)
+
+
+state 36
+
+    (18) appl_value -> appl_value , . appl_value
+    (17) appl_value -> . expr
+    (18) appl_value -> . appl_value , appl_value
+    (1) expr -> . avalue
+    (2) expr -> . value
+    (3) avalue -> . value { annotation }
+    (4) value -> . term
+    (5) value -> . appl
+    (6) value -> . list
+    (7) value -> . tuple
+    (8) value -> . string
+    (9) value -> . placeholder
+    (10) value -> . empty
+    (11) term -> . DOUBLE
+    (12) term -> . INT
+    (13) term -> . NAME
+    (16) appl -> . term ( appl_value )
+    (19) list -> . [ list_value ]
+    (22) tuple -> . ( list_value )
+    (25) string -> . STRING
+    (26) placeholder -> . < PLACEHOLDER ( appl_value ) >
+    (27) placeholder -> . < PLACEHOLDER >
+    (28) empty -> .
+
+    DOUBLE          shift and go to state 17
+    INT             shift and go to state 13
+    NAME            shift and go to state 12
+    [               shift and go to state 9
+    (               shift and go to state 3
+    STRING          shift and go to state 1
+    <               shift and go to state 5
+    {               reduce using rule 28 (empty -> .)
+    ,               reduce using rule 28 (empty -> .)
+    )               reduce using rule 28 (empty -> .)
+
+    term                           shift and go to state 11
+    string                         shift and go to state 7
+    avalue                         shift and go to state 2
+    tuple                          shift and go to state 8
+    expr                           shift and go to state 30
+    list                           shift and go to state 15
+    value                          shift and go to state 16
+    appl                           shift and go to state 4
+    placeholder                    shift and go to state 10
+    empty                          shift and go to state 6
+    appl_value                     shift and go to state 40
+
+state 37
+
+    (3) avalue -> value { annotation } .
+
+    ,               reduce using rule 3 (avalue -> value { annotation } .)
+    )               reduce using rule 3 (avalue -> value { annotation } .)
+    $end            reduce using rule 3 (avalue -> value { annotation } .)
+    ]               reduce using rule 3 (avalue -> value { annotation } .)
+
+
+state 38
+
+    (15) annotation -> annotation , . annotation
+    (14) annotation -> . value
+    (15) annotation -> . annotation , annotation
+    (4) value -> . term
+    (5) value -> . appl
+    (6) value -> . list
+    (7) value -> . tuple
+    (8) value -> . string
+    (9) value -> . placeholder
+    (10) value -> . empty
+    (11) term -> . DOUBLE
+    (12) term -> . INT
+    (13) term -> . NAME
+    (16) appl -> . term ( appl_value )
+    (19) list -> . [ list_value ]
+    (22) tuple -> . ( list_value )
+    (25) string -> . STRING
+    (26) placeholder -> . < PLACEHOLDER ( appl_value ) >
+    (27) placeholder -> . < PLACEHOLDER >
+    (28) empty -> .
+
+    DOUBLE          shift and go to state 17
+    INT             shift and go to state 13
+    NAME            shift and go to state 12
+    [               shift and go to state 9
+    (               shift and go to state 3
+    STRING          shift and go to state 1
+    <               shift and go to state 5
+    ,               reduce using rule 28 (empty -> .)
+    }               reduce using rule 28 (empty -> .)
+
+    term                           shift and go to state 11
+    string                         shift and go to state 7
+    tuple                          shift and go to state 8
+    list                           shift and go to state 15
+    value                          shift and go to state 32
+    appl                           shift and go to state 4
+    placeholder                    shift and go to state 10
+    annotation                     shift and go to state 41
+    empty                          shift and go to state 6
+
+state 39
+
+    (26) placeholder -> < PLACEHOLDER ( appl_value ) . >
+
+    >               shift and go to state 42
+
+
+state 40
+
+    (18) appl_value -> appl_value , appl_value .
+    (18) appl_value -> appl_value . , appl_value
+
+  ! shift/reduce conflict for , resolved as shift
+    )               reduce using rule 18 (appl_value -> appl_value , appl_value .)
+    ,               shift and go to state 36
+
+  ! ,               [ reduce using rule 18 (appl_value -> appl_value , appl_value .) ]
+
+
+state 41
+
+    (15) annotation -> annotation , annotation .
+    (15) annotation -> annotation . , annotation
+
+  ! shift/reduce conflict for , resolved as shift
+    }               reduce using rule 15 (annotation -> annotation , annotation .)
+    ,               shift and go to state 38
+
+  ! ,               [ reduce using rule 15 (annotation -> annotation , annotation .) ]
+
+
+state 42
+
+    (26) placeholder -> < PLACEHOLDER ( appl_value ) > .
+
+    }               reduce using rule 26 (placeholder -> < PLACEHOLDER ( appl_value ) > .)
+    ,               reduce using rule 26 (placeholder -> < PLACEHOLDER ( appl_value ) > .)
+    {               reduce using rule 26 (placeholder -> < PLACEHOLDER ( appl_value ) > .)
+    )               reduce using rule 26 (placeholder -> < PLACEHOLDER ( appl_value ) > .)
+    $end            reduce using rule 26 (placeholder -> < PLACEHOLDER ( appl_value ) > .)
+    ]               reduce using rule 26 (placeholder -> < PLACEHOLDER ( appl_value ) > .)
+
+WARNING: 
+WARNING: Conflicts:
+WARNING: 
+WARNING: shift/reduce conflict for , in state 33 resolved as shift
+WARNING: shift/reduce conflict for , in state 40 resolved as shift
+WARNING: shift/reduce conflict for , in state 41 resolved as shift
