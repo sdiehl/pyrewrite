@@ -5,40 +5,185 @@ from collections import namedtuple, OrderedDict
 import ply.lex as lex
 import ply.yacc as yacc
 
-parser = None
+class ATermBase(object):
+    """ Base for aterms """
 
-#------------------------------------------------------------------------
-# Errors
-#------------------------------------------------------------------------
+    # Specifies child attributes
+    _fields = []
 
-syntax_error = """
+    def __init__(self, annotation=None):
+        self.annotation = annotation
 
-  File {filename}, line {lineno}
-    {line}
-    {pointer}
+    @property
+    def metastr(self):
+        if self.annotation:
+            return str(self.annotation)
+        else:
+            return ''
 
-ATermSyntaxError: {msg}
-"""
+class ATerm(ATermBase):
 
-class AtermSyntaxError(SyntaxError):
-    """
-    Makes aterm parse errors look like Python SyntaxError.
-    """
-    def __init__(self, lineno, col_offset, filename, text, msg=None):
-        self.lineno     = lineno
-        self.col_offset = col_offset
-        self.filename   = filename
-        self.text       = text
-        self.msg        = msg or 'invalid syntax'
+    def __init__(self, label, **kwargs):
+        super(ATerm, self).__init__(**kwargs)
+        self.label = label
 
     def __str__(self):
-        return syntax_error.format(
-            filename = self.filename,
-            lineno   = self.lineno,
-            line     = self.text,
-            pointer  = ' '*self.col_offset + '^',
-            msg      = self.msg
-        )
+        return str(self.label) + self.metastr
+
+    def _matches(self, query):
+        return self.label == query
+
+    def __repr__(self):
+        return str(self)
+
+class AAppl(ATermBase):
+
+    _fields = ['spine', 'args']
+
+    def __init__(self, spine, args, **kwargs):
+        super(AAppl, self).__init__(**kwargs)
+        assert isinstance(spine, ATerm)
+        self.spine = spine
+        self.args = args
+
+    def _matches(self, query):
+        if query == '*':
+            return True
+
+        spine, args, _ = sep.split(query)
+        args = args.split(',')
+
+        if len(self.args) != len(args):
+            return False
+
+        # success
+        if spine.islower() or self.spine.label == spine:
+            _vars = {}
+            argm = [b.islower() or a._matches(b) for a,b in zip(self.args, args)]
+
+            if spine.islower():
+                _vars[spine] = self.spine
+
+            for i, arg in enumerate(args):
+                if argm[i]:
+                    _vars[arg] = self.args[i]
+
+            return _vars
+
+        else:
+            return False
+
+    def __str__(self):
+        return str(self.spine) + arepr(self.args, '(', ')') + self.metastr
+
+    def __repr__(self):
+        return str(self)
+
+class AAnnotation(ATermBase):
+
+    def __init__(self, ty=None, annotations=None):
+        self.ty = ty or None
+
+        if annotations is not None:
+            # Convert annotations to aterms
+            annotations = list(annotations)
+            for i, annotation in enumerate(annotations):
+                if not isinstance(annotation, ATermBase):
+                    annotations[i] = ATerm(annotation)
+
+        self.meta = annotations or []
+
+    @property
+    def annotations(self):
+        terms = map(ATerm, (self.ty,) + tuple(self.meta))
+        return arepr(terms, '{', '}')
+
+    def __contains__(self, key):
+        if key == 'type':
+            return True
+        else:
+            return key in self.meta
+
+    def __getitem__(self, key):
+        if key == 'type':
+            return self.ty
+        else:
+            return key in self.meta
+
+    def _matches(self, value, meta):
+        if value == '*':
+            vmatch = True
+        else:
+            vmatch = self.bt._matches(value)
+
+        if meta == ['*']:
+            mmatch = True
+        else:
+            mmatch = all(a in self for a in meta)
+
+        if vmatch and mmatch:
+            return vmatch
+        else:
+            return False
+
+    def __str__(self):
+        return self.annotations
+
+    def __repr__(self):
+        return str(self)
+
+class AString(ATermBase):
+    def __init__(self, s, **kwargs):
+        super(AString, self).__init__(**kwargs)
+
+        # must be ascii
+        assert isinstance(s, str)
+        self.s = s
+
+    def __str__(self):
+        return '"%s"' % (self.s + self.metastr)
+
+    def __repr__(self):
+        return str(self)
+
+class AInt(ATermBase):
+    def __init__(self, n, **kwargs):
+        super(AInt, self).__init__(**kwargs)
+        self.n = n
+
+    def _matches(self, value):
+        if value.islower():
+            return True
+        else:
+            return self.n == int(value)
+
+    def __str__(self):
+        return str(self.n) + self.metastr
+
+    def __repr__(self):
+        return str(self)
+
+class AFloat(ATermBase):
+    def __init__(self, n, **kwargs):
+        super(AFloat, self).__init__(**kwargs)
+        self.n = n
+
+    def __str__(self):
+        return str(self.n) + self.metastr
+
+    def __repr__(self):
+        return str(self)
+
+class AList(ATermBase):
+    def __init__(self, *elts, **kwargs):
+        super(AList, self).__init__(**kwargs)
+        self.elts = elts
+
+    def __str__(self):
+        return arepr(self.elts, '[', ']') + self.metastr
+
+    def __repr__(self):
+        return str(self)
 
 #------------------------------------------------------------------------
 # AST Nodes
@@ -58,314 +203,3 @@ BLOB = 2
 TERM = 3
 APPL = 4
 LIST = 5
-
-placeholders = {
-    'appl': aappl,
-    'str': astr,
-    'int': aint,
-    'real': areal,
-    'term': (aterm, aappl, astr, aint, areal),
-    'placeholder': aplaceholder,
-    #'list' : alist
-}
-
-unquote = re.compile('"(?:[^\']*)\'|"([^"]*)"')
-
-#------------------------------------------------------------------------
-# Lexer
-#------------------------------------------------------------------------
-
-tokens = (
-    'NAME', 'INT', 'DOUBLE', 'QUOTE', 'PLACEHOLDER', 'STRING'
-)
-
-literals = [
-    ',' ,
-    '(' ,
-    ')' ,
-    '{' ,
-    '}' ,
-    '<' ,
-    '>' ,
-    '[' ,
-    ']' ,
-]
-
-t_NAME   = r'[a-zA-Z_][a-zA-Z0-9_]*'
-t_QUOTE  = r'"'
-t_ignore = '\x20\x09\x0A\x0D'
-
-def t_DOUBLE(t):
-    r'\d+\.(\d+)?'
-    t.value = float(t.value)
-    return t
-
-def t_PLACEHOLDER(t):
-    r'appl|str|int|real|placeholder|appl|list|term'
-    return t
-
-def t_INT(t):
-    r'\d+'
-    try:
-        t.value = int(t.value)
-    except ValueError:
-        print("Integer value too large %d", t.value)
-        t.value = 0
-    return t
-
-def t_STRING(t):
-    r'"([^"\\]|\\.)*"'
-    t.value = t.value.encode('ascii')
-    t.value = unquote.findall(t.value)[0]
-    return t
-
-def t_error(t):
-    print("Unknown token '%s'" % t.value[0])
-    t.lexer.skip(1)
-
-# Top of the parser
-def p_expr1(p):
-    """expr : avalue
-            | value"""
-    p[0] = p[1]
-
-#--------------------------------
-
-def p_avalue(p):
-    "avalue : value '{' annotation '}'"
-    p[0] = aterm(p[1], p[3])
-
-def p_value(p):
-    """value : term
-             | appl
-             | list
-             | tuple
-             | string
-             | placeholder
-             | empty"""
-    p[0] = p[1]
-
-#--------------------------------
-
-def p_term_double(p):
-    "term : DOUBLE"
-    p[0] = areal(p[1])
-
-def p_term_int(p):
-    "term : INT"
-    p[0] = aint(p[1])
-
-def p_term_term(p):
-    "term : NAME"
-    p[0] = aterm(p[1], None)
-
-#--------------------------------
-
-# Terms in annotations must not be themselves be annotated, i.e.
-# they must be ``value``, not ``avalue``.
-def p_annotation1(p):
-    "annotation : value"
-    p[0] = (p[1],)
-
-def p_annotation2(p):
-    "annotation : annotation ',' annotation"
-    p[0] = (p[1], p[3])
-
-#--------------------------------
-
-def p_appl(p):
-    "appl : term '(' appl_value ')' "
-    p[0] = aappl(p[1], p[3])
-
-def p_appl_value1(p):
-    "appl_value : expr"
-    p[0] = [p[1]]
-
-def p_appl_value2(p):
-    "appl_value : appl_value ',' appl_value"
-    p[0] = p[1] + p[3]
-
-#--------------------------------
-
-def p_list(p):
-    "list : '[' list_value ']' "
-    p[0] = p[2]
-
-def p_list_value1(p):
-    "list_value : expr"
-    p[0] = [p[1]]
-
-def p_list_value2(p):
-    "list_value : list_value ',' list_value"
-    p[0] = p[1] + p[3]
-
-#--------------------------------
-
-def p_tuple(p):
-    "tuple : '(' list_value ')' "
-    p[0] = atupl(p[2])
-
-def p_tuple_value1(p):
-    "tuple_value : expr"
-    p[0] = [p[1]]
-
-def p_tuple_value2(p):
-    "tuple_value : tuple_value ',' tuple_value"
-    p[0] = p[1] + p[3]
-
-#--------------------------------
-
-def p_string(p):
-    "string : STRING"
-    p[0] = astr(p[1])
-
-#--------------------------------
-
-def p_placeholder1(p):
-    "placeholder : '<' PLACEHOLDER '(' appl_value ')' '>'"
-    p[0] = aplaceholder(p[2], p[4])
-
-def p_placeholder2(p):
-    "placeholder : '<' PLACEHOLDER  '>'"
-    p[0] = aplaceholder(p[2], None)
-
-#--------------------------------
-
-def p_empty(t):
-    "empty : "
-    pass
-
-#--------------------------------
-
-def p_error(p):
-    if p:
-        raise AtermSyntaxError(
-            p.lineno,
-            p.lexpos,
-            '<stdin>',
-            p.lexer.lexdata,
-        )
-    else:
-        raise SyntaxError("Syntax error at EOF")
-
-
-#--------------------------------
-
-def init(xs):
-    for x in xs:
-        return x
-
-def tail(xs):
-    for x in reversed(xs):
-        return x
-
-def aterm_iter(term):
-    if isinstance(term, (aint, areal, astr)):
-        yield term.val
-
-    elif isinstance(term, aappl):
-        yield term.spine
-        for arg in term.args:
-            for t in aterm_iter(arg):
-                yield arg
-
-    elif isinstance(term, aterm):
-        yield term.term
-
-    else:
-        raise NotImplementedError
-
-def aterm_zip(a, b):
-    if isinstance(a, (aint, areal, astr)) and isinstance(b, (aint, areal, astr)):
-        yield a.val == b.val, None
-
-    elif isinstance(a, aappl) and isinstance(b, aappl):
-        yield a.spine == b.spine, None
-        for ai, bi in zip(a.args, b.args):
-            for aj in aterm_zip(ai,bi):
-                yield aj
-
-    elif isinstance(a, aterm) and isinstance(b, aterm):
-        yield a.term == b.term, None
-        yield a.annotation == b.annotation, None
-
-    elif isinstance(a, aplaceholder):
-        # <appl(...)>
-        if a.args:
-            if isinstance(b, aappl):
-                yield True, b.spine
-                for ai, bi in zip(a.args, b.args):
-                    for a in aterm_zip(ai,bi):
-                        yield a
-            else:
-                yield False, None
-        # <term>
-        else:
-            yield isinstance(b, placeholders[a.type]), b
-    else:
-        yield False, None
-
-def aterm_azip(a, elts):
-    elts = elts[:]
-
-    if isinstance(a, (aint, areal, astr)):
-        yield a
-
-    elif isinstance(a, aappl):
-        # ugly
-        yield aappl(a.spine, [init(aterm_azip(ai,elts)) for ai in a.args])
-
-    elif isinstance(a, aterm):
-        yield a
-
-    elif isinstance(a, aplaceholder):
-        # <appl(...)>
-        if a.args:
-            # ugly
-            yield aappl(elts.pop(), [init(aterm_azip(ai,elts)) for ai in a.args])
-        # <term>
-        else:
-            yield elts.pop()
-    else:
-        raise NotImplementedError
-
-#--------------------------------
-
-def has_prop(term, prop):
-    return prop in term.annotation
-
-#--------------------------------
-
-def _init():
-    global parser
-    if not parser:
-        lexer = lex.lex()
-        parser = yacc.yacc(tabmodule='atokens', outputdir=".")
-    else:
-        parser = parser
-    return parser
-
-def parse(pattern):
-    parser = _init()
-    return parser.parse(pattern)
-
-def match(pattern, subject, *captures):
-    parser = _init()
-
-    captures = []
-
-    p = parser.parse(pattern)
-    s = parser.parse(subject)
-
-    for matches, capture in aterm_zip(p,s):
-        if not matches:
-            return False, []
-        elif matches and capture:
-            captures += [capture]
-    return True, captures
-
-def make(pattern, *values):
-    parser = _init()
-
-    p = parser.parse(pattern)
-    return list(aterm_azip(p,list(values)))

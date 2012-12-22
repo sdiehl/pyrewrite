@@ -1,4 +1,5 @@
-from uaterm import *
+from parse import parse
+from matching import match, make
 
 def test_parser_sanity():
 
@@ -46,9 +47,8 @@ def test_parser_sanity():
     match('f(<int>,g(x,y))', 'f(1,g(x,y))')
     match('f(<int>,g(x,y))', 'f(1,g(x,y))')
     match('f(1,<appl(x,y)>)', 'f(1,g(x,y))')
-    res = match('f(1,<appl(x,<term>)>)', 'f(1,g(x,3))')
-    import pdb; pdb.set_trace()
+    match('f(1,<appl(x,<term>)>)', 'f(1,g(x,3))')
 
-    make('f(<int>)', aint(1))
-    make('f(x, y, g(<int>,<int>))', aint(1), aint(2))
-    make('<appl(x,y)>', aterm('x', None))
+    #make('f(<int>)', aint(1))
+    #make('f(x, y, g(<int>,<int>))', aint(1), aint(2))
+    #make('<appl(x,y)>', aterm('x', None))
