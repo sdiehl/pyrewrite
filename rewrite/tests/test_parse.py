@@ -1,6 +1,6 @@
-from parse import parse
-from matching import match, make
-from uaterm import *
+from rewrite.parse import parse
+from rewrite.matching import match, make
+from rewrite.terms import *
 
 def test_parser_sanity():
 

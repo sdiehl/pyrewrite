@@ -13,7 +13,8 @@ bt : C                 -- constant
    | real              -- floating point number
 """
 
-from uaterm import *
+import os
+from terms import *
 
 #------------------------------------------------------------------------
 # Errors
@@ -232,8 +233,12 @@ def p_error(p):
 def _init():
     global parser
     if not parser:
+        path = os.path.abspath(__file__)
+        dir_path = os.path.dirname(path)
+
         lexer = lex.lex()
-        parser = yacc.yacc(tabmodule='atokens', outputdir=".")
+        parser = yacc.yacc(tabmodule='statem',outputdir=dir_path,debug=0,
+            write_tables=0)
     else:
         parser = parser
     return parser

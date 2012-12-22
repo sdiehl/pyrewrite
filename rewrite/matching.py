@@ -1,5 +1,5 @@
 from parse import _init, parse
-from uaterm import *
+from terms import *
 
 placeholders = {
     'appl': aappl,
