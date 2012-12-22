@@ -9,6 +9,7 @@ Usage
 ```python
 >>> from rewrite import parse
 >>> parse('f(x,y)')
+f(x,y)
 ```
 
 ```python
@@ -26,5 +27,8 @@ False
 x
 
 >>> match('f(<term>,<int>)', 'f(x,1)')
-[aterm('x'), aint('1')]
+(True, [x, 1])
+
+match('succ(<appl(<term>)>)', 'succ(succ(zero))')
+(True, [succ, zero])
 ```
