@@ -24,7 +24,7 @@ False
 ```python
 >>> from rewrite import match
 >>> match('f(<term>)', 'f(x)')
-x
+(True, [x])
 
 >>> match('f(<term>,<int>)', 'f(x,1)')
 (True, [x, 1])
