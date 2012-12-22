@@ -19,21 +19,6 @@ def tail(xs):
     for x in reversed(xs):
         return x
 
-def aterm_iter(term):
-    if isinstance(term, (aint, areal, astr)):
-        yield term.val
-
-    elif isinstance(term, aappl):
-        yield term.spine
-        for arg in term.args:
-            for t in aterm_iter(arg):
-                yield arg
-
-    elif isinstance(term, aterm):
-        yield term.term
-
-    else:
-        raise NotImplementedError
 
 def aterm_zip(a, b):
     if isinstance(a, (aint, areal, astr)) and isinstance(b, (aint, areal, astr)):
@@ -65,6 +50,7 @@ def aterm_zip(a, b):
     else:
         yield False, None
 
+
 def aterm_azip(a, elts):
     elts = elts[:]
 
@@ -89,9 +75,6 @@ def aterm_azip(a, elts):
     else:
         raise NotImplementedError
 
-def parse(pattern):
-    parser = _init()
-    return parser.parse(pattern)
 
 def match(pattern, subject, *captures):
     parser = _init()
@@ -108,8 +91,22 @@ def match(pattern, subject, *captures):
             captures += [capture]
     return True, captures
 
-def make(pattern, *values):
+def matches(pattern, subject):
     parser = _init()
 
+    captures = []
+
+    p = parser.parse(pattern)
+    s = parser.parse(subject)
+
+    for matches, capture in aterm_zip(p,s):
+        if not matches:
+            return False, []
+        elif matches and capture:
+            captures += [capture]
+    return True, captures
+
+def make(pattern, *values):
+    parser = _init()
     p = parser.parse(pattern)
     return list(aterm_azip(p,list(values)))

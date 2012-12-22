@@ -1,5 +1,6 @@
 from parse import parse
 from matching import match, make
+from uaterm import *
 
 def test_parser_sanity():
 
@@ -37,7 +38,7 @@ def test_parser_sanity():
     parse('<appl(1,2)>')
     parse('<term>{[a,b]}')
 
-
+def test_matching():
     match('x', 'x')
     match('x', 'y')
     match('x{foo}', 'x{foo}')
@@ -49,6 +50,7 @@ def test_parser_sanity():
     match('f(1,<appl(x,y)>)', 'f(1,g(x,y))')
     match('f(1,<appl(x,<term>)>)', 'f(1,g(x,3))')
 
-    #make('f(<int>)', aint(1))
-    #make('f(x, y, g(<int>,<int>))', aint(1), aint(2))
-    #make('<appl(x,y)>', aterm('x', None))
+def test_make():
+    make('f(<int>)', aint(1))
+    make('f(x, y, g(<int>,<int>))', aint(1), aint(2))
+    make('<appl(x,y)>', aterm('x', None))
