@@ -94,17 +94,13 @@ def match(pattern, subject, *captures):
 def matches(pattern, subject):
     parser = _init()
 
-    captures = []
-
     p = parser.parse(pattern)
     s = parser.parse(subject)
 
     for matches, capture in aterm_zip(p,s):
         if not matches:
-            return False, []
-        elif matches and capture:
-            captures += [capture]
-    return True, captures
+            return False
+    return True
 
 def make(pattern, *values):
     parser = _init()
