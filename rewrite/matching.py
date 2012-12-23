@@ -102,7 +102,7 @@ def matches(pattern, subject):
             return False
     return True
 
-def make(pattern, *values):
+def build(pattern, *values):
     parser = _init()
     p = parser.parse(pattern)
     return list(aterm_splice(p,list(values)))

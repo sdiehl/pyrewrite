@@ -1,2 +1,2 @@
-from matching import match, matches, make
+from matching import match, matches, build
 from parse import parse

@@ -1,5 +1,5 @@
 from rewrite.parse import parse
-from rewrite.matching import match, make
+from rewrite.matching import match, build
 from rewrite.terms import *
 
 def test_parser_sanity():
@@ -59,6 +59,6 @@ def test_matching():
     match('f(1,<appl(x,<term>)>)', 'f(1,g(x,3))')
 
 def test_make():
-    make('f(<int>)', aint(1))
-    make('f(x, y, g(<int>,<int>))', aint(1), aint(2))
-    make('<appl(x,y)>', aterm('x', None))
+    build('f(<int>)', aint(1))
+    build('f(x, y, g(<int>,<int>))', aint(1), aint(2))
+    build('<appl(x,y)>', aterm('x', None))

@@ -3,22 +3,13 @@
 #------------------------------------------------------------------------
 
 Id = lambda s: s
+compose = lambda f, g: lambda x: f(g(x))
 
-def Fail():
+def fail():
     raise STFail()
 
 class STFail(Exception):
     pass
-
-compose = lambda f, g: lambda x: f(g(x))
-
-class Fail(object):
-
-    def __init__(self):
-        pass
-
-    def __call__(self, o):
-        raise STFail()
 
 class Choice(object):
     def __init__(self, left=None, right=None):
