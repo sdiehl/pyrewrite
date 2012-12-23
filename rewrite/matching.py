@@ -51,7 +51,7 @@ def aterm_zip(a, b):
         yield False, None
 
 
-def aterm_azip(a, elts):
+def aterm_splice(a, elts):
     elts = elts[:]
 
     if isinstance(a, (aint, areal, astr)):
@@ -59,7 +59,7 @@ def aterm_azip(a, elts):
 
     elif isinstance(a, aappl):
         # ugly
-        yield aappl(a.spine, [init(aterm_azip(ai,elts)) for ai in a.args])
+        yield aappl(a.spine, [init(aterm_splice(ai,elts)) for ai in a.args])
 
     elif isinstance(a, aterm):
         yield a
@@ -68,7 +68,7 @@ def aterm_azip(a, elts):
         # <appl(...)>
         if a.args:
             # ugly
-            yield aappl(elts.pop(), [init(aterm_azip(ai,elts)) for ai in a.args])
+            yield aappl(elts.pop(), [init(aterm_splice(ai,elts)) for ai in a.args])
         # <term>
         else:
             yield elts.pop()
@@ -105,4 +105,4 @@ def matches(pattern, subject):
 def make(pattern, *values):
     parser = _init()
     p = parser.parse(pattern)
-    return list(aterm_azip(p,list(values)))
+    return list(aterm_splice(p,list(values)))
