@@ -46,6 +46,26 @@ def test_parser_sanity():
     parse('Add(2,3{dshape("foo, bar, 2")})')
     parse('Add(2{dshape("int"),62764584},3.0{dshape("double"),62764408})')
 
+def test_roundtrip():
+
+    a0 = parse(repr(parse('f')))
+    a1 = parse(repr(parse('f(x)')))
+    a2 = parse(repr(parse('f(x, y)')))
+    a3 = parse(repr(parse('(x, y)')))
+    a4 = parse(repr(parse('f(x, f(x, y))')))
+    a5 = parse(repr(parse('f(1, 2, 3)')))
+    a6 = parse(repr(parse('f([1, 2, 3])')))
+    a7 = parse(repr(parse('(1, 2, 3)')))
+
+    assert repr(a0) == 'f'
+    assert repr(a1) == 'f(x)'
+    assert repr(a2) == 'f(x, y)'
+    assert repr(a3) == '(x, y)'
+    assert repr(a4) == 'f(x, f(x, y))'
+    assert repr(a5) == 'f(1, 2, 3)'
+    assert repr(a6) == 'f([1, 2, 3])'
+    assert repr(a7) == '(1, 2, 3)'
+
 def test_matching():
     match('x', 'x')
     match('x', 'y')

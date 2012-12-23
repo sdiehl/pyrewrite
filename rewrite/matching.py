@@ -104,5 +104,7 @@ def matches(pattern, subject):
 
 def build(pattern, *values):
     parser = _init()
+    vals = list(values)
+
     p = parser.parse(pattern)
-    return list(aterm_splice(p,list(values)))
+    return list(aterm_splice(p,vals))
