@@ -122,7 +122,7 @@ def matches(pattern, subject):
             return False
     return True
 
-def build(pattern, *values):
+def build(pattern, values):
     parser = _init()
     vals = list(values)
 

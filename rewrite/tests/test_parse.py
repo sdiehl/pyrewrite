@@ -83,9 +83,9 @@ def test_matching():
     match('f(1,<appl(x,<term>)>)', 'f(1,g(x,3))')
 
 def test_build():
-    build('f(<int>)', aint(1))
-    build('f(x, y, g(<int>,<int>))', aint(1), aint(2))
-    build('<appl(x,y)>', aterm('x', None))
+    build('f(<int>)', [aint(1)])
+    build('f(x, y, g(<int>,<int>))', [aint(1), aint(2)])
+    build('<appl(x,y)>', [aterm('x', None)])
 
 def test_free():
     x1 = list(free(parse('f(a,b,c)')))
