@@ -19,7 +19,6 @@ def tail(xs):
     for x in reversed(xs):
         return x
 
-
 def aterm_zip(a, b):
     if isinstance(a, (aint, areal, astr)) and isinstance(b, (aint, areal, astr)):
         yield a.val == b.val, None
@@ -73,6 +72,27 @@ def aterm_splice(a, elts):
         else:
             yield elts.pop()
     else:
+        raise NotImplementedError
+
+def free(a):
+    if isinstance(a, (aint, areal, astr)):
+        pass
+
+    elif isinstance(a, aappl):
+        for ai in a.args:
+            for aj in free(ai):
+                yield aj
+
+    elif isinstance(a, aterm):
+        yield a.term
+
+    elif isinstance(a, (alist,atupl)):
+        for ai in a.args:
+            for aj in free(ai):
+                yield aj
+
+    else:
+        import pdb; pdb.set_trace()
         raise NotImplementedError
 
 

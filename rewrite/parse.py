@@ -32,7 +32,7 @@ syntax_error = """
 ATermSyntaxError: {msg}
 """
 
-class AtermSyntaxError(SyntaxError):
+class AtermSyntaxError(Exception):
     """
     Makes aterm parse errors look like Python SyntaxError.
     """
@@ -171,11 +171,14 @@ def p_appl_value2(p):
 
 def p_list(p):
     "list : '[' list_value ']' "
-    p[0] = p[2]
+    p[0] = alist(p[2])
 
 def p_list_value1(p):
     "list_value : expr"
-    p[0] = [p[1]]
+    if p[1]:
+        p[0] = [p[1]]
+    else:
+        p[0] = []
 
 def p_list_value2(p):
     "list_value : list_value ',' list_value"
@@ -189,7 +192,10 @@ def p_tuple(p):
 
 def p_tuple_value1(p):
     "tuple_value : expr"
-    p[0] = [p[1]]
+    if p[1]:
+        p[0] = [p[1]]
+    else:
+        p[0] = []
 
 def p_tuple_value2(p):
     "tuple_value : tuple_value ',' tuple_value"

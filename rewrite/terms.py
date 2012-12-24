@@ -74,7 +74,7 @@ class AReal(object):
 class AList(object):
     def __init__(self, args):
         assert isinstance(args, list)
-        self.args = args
+        self.args = args or []
 
     def __str__(self):
         return arepr(self.args, '[', ']')
@@ -85,7 +85,7 @@ class AList(object):
 class ATuple(object):
     def __init__(self, args):
         assert isinstance(args, list)
-        self.args = args
+        self.args = args or []
 
     def __str__(self):
         return arepr(self.args, '(', ')')
@@ -127,4 +127,5 @@ aint  = AInt
 astr  = AString
 areal = AReal
 atupl = ATuple
+alist = AList
 aplaceholder = APlaceholder
