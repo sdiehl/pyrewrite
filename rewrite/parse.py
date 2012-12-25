@@ -244,9 +244,9 @@ def _init():
         path = os.path.abspath(__file__)
         dir_path = os.path.dirname(path)
 
-        lexer = lex.lex()
-        parser = yacc.yacc(tabmodule='statem',outputdir=dir_path,debug=0,
-            write_tables=0)
+        lexer = lex.lex(lextab="alex")
+        parser = yacc.yacc(tabmodule='ayacc',outputdir=dir_path,debug=0,
+            write_tables=1)
     else:
         parser = parser
     return parser

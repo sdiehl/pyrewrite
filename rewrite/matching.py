@@ -24,10 +24,13 @@ def aterm_zip(a, b):
         yield a.val == b.val, None
 
     elif isinstance(a, aappl) and isinstance(b, aappl):
-        yield a.spine == b.spine, None
-        for ai, bi in zip(a.args, b.args):
-            for aj in aterm_zip(ai,bi):
-                yield aj
+        if len(a.args) == len(b.args):
+            yield a.spine == b.spine, None
+            for ai, bi in zip(a.args, b.args):
+                for aj in aterm_zip(ai,bi):
+                    yield aj
+        else:
+            yield False, None
 
     elif isinstance(a, aterm) and isinstance(b, aterm):
         yield a.term == b.term, None
@@ -92,7 +95,21 @@ def free(a):
                 yield aj
 
     else:
-        import pdb; pdb.set_trace()
+        raise NotImplementedError
+
+
+def freev(a):
+    if isinstance(a, (aint, areal, astr)):
+        return a
+
+    elif isinstance(a, aappl):
+        # ugly
+        return aappl(a.spine, [freev(ai) for ai in a.args])
+
+    elif isinstance(a, aterm):
+        return aplaceholder('term', None)
+
+    else:
         raise NotImplementedError
 
 
