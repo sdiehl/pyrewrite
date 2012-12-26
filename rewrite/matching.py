@@ -53,14 +53,13 @@ def aterm_zip(a, b):
         yield False, None
 
 
+# left-to-right substitution
 def aterm_splice(a, elts):
-    elts = elts[:]
 
     if isinstance(a, (aint, areal, astr)):
         yield a
 
     elif isinstance(a, aappl):
-        # ugly
         yield aappl(a.spine, [init(aterm_splice(ai,elts)) for ai in a.args])
 
     elif isinstance(a, aterm):
@@ -69,8 +68,8 @@ def aterm_splice(a, elts):
     elif isinstance(a, aplaceholder):
         # <appl(...)>
         if a.args:
-            # ugly
-            yield aappl(elts.pop(), [init(aterm_splice(ai,elts)) for ai in a.args])
+            spine = elts.pop()
+            yield aappl(spine, [init(aterm_splice(ai,elts)) for ai in a.args])
         # <term>
         else:
             yield elts.pop()
@@ -103,7 +102,6 @@ def freev(a):
         return a
 
     elif isinstance(a, aappl):
-        # ugly
         return aappl(a.spine, [freev(ai) for ai in a.args])
 
     elif isinstance(a, aterm):
@@ -114,12 +112,12 @@ def freev(a):
 
 
 def match(pattern, subject, *captures):
-    parser = _init()
+    #parser = _init()
 
     captures = []
 
-    p = parser.parse(pattern)
-    s = parser.parse(subject)
+    p = pattern
+    s = subject
 
     for matches, capture in aterm_zip(p,s):
         if not matches:
@@ -129,10 +127,10 @@ def match(pattern, subject, *captures):
     return True, captures
 
 def matches(pattern, subject):
-    parser = _init()
+    #parser = _init()
 
-    p = parser.parse(pattern)
-    s = parser.parse(subject)
+    p = pattern
+    s = subject
 
     for matches, capture in aterm_zip(p,s):
         if not matches:
@@ -140,8 +138,6 @@ def matches(pattern, subject):
     return True
 
 def build(pattern, values):
-    parser = _init()
+    #parser = _init()
     vals = list(values)
-
-    p = parser.parse(pattern)
-    return list(aterm_splice(p,vals))
+    return init(aterm_splice(pattern,vals))

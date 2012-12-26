@@ -22,7 +22,6 @@ DEBUG = True
 # Errors
 #------------------------------------------------------------------------
 
-parser = None
 syntax_error = """
 
   File {filename}, line {lineno}
@@ -161,7 +160,10 @@ def p_appl(p):
 
 def p_appl_value1(p):
     "appl_value : expr"
-    p[0] = [p[1]]
+    if p[1]:
+        p[0] = [p[1]]
+    else:
+        p[0] = []
 
 def p_appl_value2(p):
     "appl_value : appl_value ',' appl_value"
@@ -239,16 +241,12 @@ def p_error(p):
 #--------------------------------
 
 def _init():
-    global parser
-    if not parser:
-        path = os.path.abspath(__file__)
-        dir_path = os.path.dirname(path)
+    path = os.path.abspath(__file__)
+    dir_path = os.path.dirname(path)
 
-        lexer = lex.lex(lextab="alex")
-        parser = yacc.yacc(tabmodule='ayacc',outputdir=dir_path,debug=0,
-            write_tables=1)
-    else:
-        parser = parser
+    lexer = lex.lex(lextab="alex")
+    parser = yacc.yacc(tabmodule='ayacc',outputdir=dir_path,debug=0,
+        write_tables=1)
     return parser
 
 def parse(pattern):

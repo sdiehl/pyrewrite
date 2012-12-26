@@ -22,7 +22,16 @@ class ATerm(object):
             return str(self.term)
 
     def __eq__(self, other):
-        return self.term == other.term
+        if isinstance(other, ATerm):
+            return self.term == other.term
+        else:
+            raise ValueError()
+
+    def __ne__(self, other):
+        if isinstance(other, ATerm):
+            return self.term != other.term
+        else:
+            raise ValueError()
 
     def __repr__(self):
         return str(self)
@@ -57,6 +66,18 @@ class AInt(object):
 
     def __str__(self):
         return str(self.val)
+
+    def __eq__(self, other):
+        if isinstance(other, AInt):
+            return self.val == other.val
+        else:
+            raise ValueError()
+
+    def __ne__(self, other):
+        if isinstance(other, AInt):
+            return self.val != other.val
+        else:
+            raise ValueError()
 
     def __repr__(self):
         return str(self)
