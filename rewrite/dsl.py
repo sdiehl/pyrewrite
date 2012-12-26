@@ -1,6 +1,6 @@
-from terms import *
-import matching
 import parse
+import matching
+from terms import *
 from matching import free, freev
 
 import os
@@ -130,7 +130,7 @@ def p_rule(p):
 
 def p_strategy(p):
     '''strategy : NAME '=' value'''
-    p[0] = (p[1],p[3],p[3])
+    p[0] = Strategy(p[1],p[3])
 
 #--------------------------------
 
@@ -259,6 +259,12 @@ def dslparse(pattern):
 class NoMatch(Exception):
     pass
 
+class Strategy(object):
+
+    def __init__(self, label, value):
+        self.label = label
+        self.value = value
+
 class Rule(object):
     def __init__(self, symtab, lpat, rpat, matcher, builder):
         self.matcher = matcher
@@ -313,6 +319,36 @@ class RuleBlock(object):
     def __call__(self, pattern):
         return self.rewrite(pattern)
 
+def build_strategy(r):
+    pass
+
+def build_rule(l, r):
+    i,j = 0, 0
+
+    lpat = []
+    rpat = []
+
+    symtab = {}
+
+    for v in free(l):
+        if v in symtab:
+            lpat.append(symtab[v])
+        else:
+            symtab[v] = i
+            lpat.append(i)
+            i += 1
+
+    for v in free(r):
+        if v in symtab:
+            rpat.append(symtab[v])
+        else:
+            raise Exception('Unbound variable')
+
+    matcher = partial(matching.match, freev(l))
+    builder = partial(matching.build, freev(r))
+
+    rr = Rule(symtab, lpat, rpat, matcher, builder)
+    return rr
 
 def module(s):
     defs = dslparse(s)
@@ -322,33 +358,14 @@ def module(s):
     # the rule, and the term patterns l and r left hand matcher and
     # r the right hand builder. The right hand side symbol table is
     # augmented by the ``where`` clause.
-    for label, l, r in defs:
-        i,j = 0, 0
 
-        lpat = []
-        rpat = []
-
-        symtab = {}
-
-        for v in free(l):
-            if v in symtab:
-                lpat.append(symtab[v])
-            else:
-                symtab[v] = i
-                lpat.append(i)
-                i += 1
-
-        for v in free(r):
-            if v in symtab:
-                rpat.append(symtab[v])
-            else:
-                raise Exception('Unbound variable')
-
-        matcher = partial(matching.match, freev(l))
-        builder = partial(matching.build, freev(r))
-
-        rr = Rule(symtab, lpat, rpat, matcher, builder)
-        rules[label].append(rr)
+    for df in defs:
+        if isinstance(df, tuple):
+            label, l, r = df
+            rr = build_rule(l, r)
+            rules[label].append(rr)
+        elif isinstance(df, Strategy):
+            import pdb; pdb.set_trace()
 
     return {label: RuleBlock(rules[label]) for label in rules}
 
@@ -359,7 +376,7 @@ foo : Succ(0) -> 1
 foo : Succ(1) -> 2
 foo : Succ(x) -> Succ(Succ(x))
 
-foo = 3
+bar = 3
 ''')
 
 print res['foo'].rewrite(parse.parse('Succ(Succ(2,2))'))
@@ -401,7 +418,7 @@ print res['foo'].rewrite(parse.parse('Succ(Succ(2))'))
 
 if __name__ == '__main__':
     import readline
-    readline.parse_and_bind('tab: complete')
+    readline.parse_and_bind('')
 
     while True:
         line = raw_input('>> ')
@@ -409,5 +426,5 @@ if __name__ == '__main__':
 
         try:
             print res['foo'](at)
-        except:
+        except NoMatch:
             print at

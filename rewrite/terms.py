@@ -142,6 +142,13 @@ def arepr(terms, l, r):
 # Compatability
 #------------------------------------------------------------------------
 
+# Goal is to only define the protocol that these need to conform
+# to and then allow pluggable backends.
+
+#    - ATerm
+#    - Python AST
+#    - SymPy
+
 aterm = ATerm
 aappl = AAppl
 aint  = AInt
