@@ -358,6 +358,8 @@ foo : B() -> A()
 foo : Succ(0) -> 1
 foo : Succ(1) -> 2
 foo : Succ(x) -> Succ(Succ(x))
+
+foo = 3
 ''')
 
 print res['foo'].rewrite(parse.parse('Succ(Succ(2,2))'))
@@ -398,8 +400,11 @@ print res['foo'].rewrite(parse.parse('Succ(Succ(2))'))
 #module('''foo = b''')
 
 if __name__ == '__main__':
+    import readline
+    readline.parse_and_bind('tab: complete')
+
     while True:
-        line = raw_input('> ')
+        line = raw_input('>> ')
         at = parse.parse(line)
 
         try:
