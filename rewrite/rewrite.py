@@ -1,3 +1,5 @@
+from terms import AAppl
+
 #------------------------------------------------------------------------
 # Rewrite Combinators
 #------------------------------------------------------------------------
@@ -17,11 +19,11 @@ class Choice(object):
         self.right = right
         assert left and right, 'Must provide two arguments to Choice'
 
-    def __call__(self, s):
+    def __call__(self, t):
         try:
-            return self.left(s)
+            return self.left(t)
         except STFail:
-            return self.right(s)
+            return self.right(t)
 
 class Ternary(object):
     def __init__(self, s1, s2, s3):
@@ -29,27 +31,13 @@ class Ternary(object):
         self.s2 = s2
         self.s3 = s3
 
-    def __call__(self, o):
+    def __call__(self, t):
         try:
-            val = self.s1(o)
+            val = self.s1(t)
         except STFail:
             return self.s2(val)
         else:
             return self.s3(val)
-
-class Fwd(object):
-
-    def __init__(self):
-        self.p = None
-
-    def define(self, p):
-        self.p = p
-
-    def __call__(self, s):
-        if self.p:
-            return self.p(s)
-        else:
-            raise NotImplementedError('Forward declaration, not declared')
 
 class Repeat(object):
     def __init__(self, p):

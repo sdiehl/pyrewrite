@@ -1,13 +1,26 @@
 import parse
 import matching
+import rewrite
 from terms import *
 from matching import free, freev
 
+import re
 import os
 from pprint import pprint
 from collections import defaultdict, Counter
 
 DEBUG = True
+
+#------------------------------------------------------------------------
+# Combinator Infix Symbols
+#------------------------------------------------------------------------
+
+combinators = {
+    'fail' : rewrite.fail,
+    'id'   : rewrite.Id,
+    '<+'   : rewrite.Choice,
+    ';'    : rewrite.Seq,
+}
 
 #------------------------------------------------------------------------
 # Errors
@@ -44,7 +57,7 @@ class RewriteSyntaxError(Exception):
 # Lexer
 
 tokens = (
-    'NAME', 'INT', 'DOUBLE', 'ARROW', 'STRING',# 'COMB', 'CLAUSE'
+    'NAME', 'INT', 'DOUBLE', 'ARROW', 'STRING', 'COMB' #, 'CLAUSE'
 )
 
 literals = [
@@ -63,6 +76,10 @@ literals = [
 
 t_NAME   = r'[a-zA-Z_][a-zA-Z0-9_]*'
 t_ignore = '\x20\x09\x0A\x0D'
+
+# dynamically generate the regex for the Combinator token from
+# the keys of the combinator dictionary
+t_COMB  = '|'.join(map(re.escape, combinators.keys()))
 
 unquote = re.compile('"(?:[^\']*)\'|"([^"]*)"')
 
@@ -93,10 +110,6 @@ def t_STRING(t):
     t.value = t.value.encode('ascii')
     t.value = unquote.findall(t.value)[0]
     return t
-
-#def t_COMB(t):
-    #r';|<\+|\+|<'
-    #return t
 
 #def t_CLAUSE(t):
     #r'not|rec'
@@ -129,8 +142,16 @@ def p_rule(p):
 #--------------------------------
 
 def p_strategy(p):
-    '''strategy : NAME '=' value'''
-    p[0] = Strategy(p[1],p[3])
+    '''strategy : NAME '=' strategy_value'''
+    p[0] = (p[1], p[3])
+
+def p_strategy_value1(p):
+    '''strategy_value : strategy_value COMB strategy_value'''
+    p[0] = Strategy(p[2], p[1] + p[3])
+
+def p_strategy_value2(p):
+    '''strategy_value : value'''
+    p[0] = [p[1]]
 
 #--------------------------------
 
@@ -261,9 +282,10 @@ class NoMatch(Exception):
 
 class Strategy(object):
 
-    def __init__(self, label, value):
-        self.label = label
-        self.value = value
+    def __init__(self, combinator, expr):
+        self.expr = expr
+        self.combinator = combinators[combinator]
+        import pdb; pdb.set_trace()
 
 class Rule(object):
     def __init__(self, symtab, lpat, rpat, matcher, builder):
@@ -319,6 +341,7 @@ class RuleBlock(object):
     def __call__(self, pattern):
         return self.rewrite(pattern)
 
+
 def build_strategy(r):
     pass
 
@@ -365,7 +388,7 @@ def module(s):
             rr = build_rule(l, r)
             rules[label].append(rr)
         elif isinstance(df, Strategy):
-            import pdb; pdb.set_trace()
+            print 'Strategy:', df
 
     return {label: RuleBlock(rules[label]) for label in rules}
 
@@ -376,7 +399,8 @@ foo : Succ(0) -> 1
 foo : Succ(1) -> 2
 foo : Succ(x) -> Succ(Succ(x))
 
-bar = 3
+bar = foo ; foo ; bar
+bar = foo ; foo
 ''')
 
 print res['foo'].rewrite(parse.parse('Succ(Succ(2,2))'))
@@ -420,11 +444,22 @@ if __name__ == '__main__':
     import readline
     readline.parse_and_bind('')
 
+    last = None
+
     while True:
-        line = raw_input('>> ')
-        at = parse.parse(line)
+        try:
+            line = raw_input('>> ')
+        except EOFError:
+            break
+
+        if line == '!!':
+            at = last
+        else:
+            at = parse.parse(line)
 
         try:
-            print res['foo'](at)
+            last = res['foo'](at)
         except NoMatch:
-            print at
+            last = at
+
+        print last
