@@ -240,7 +240,7 @@ def p_error(p):
 
 #--------------------------------
 
-def _init():
+def make_parser():
     path = os.path.abspath(__file__)
     dir_path = os.path.dirname(path)
 
@@ -248,6 +248,8 @@ def _init():
     parser = yacc.yacc(tabmodule='ayacc',outputdir=dir_path,debug=0,
         write_tables=1)
     return parser
+
+_init = make_parser
 
 def parse(pattern):
     parser = _init()

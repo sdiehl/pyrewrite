@@ -1,8 +1,9 @@
-from rewrite.parse import parse
+from rewrite.parse import make_parser
 from rewrite.matching import match, build, free
 from rewrite.terms import *
 
 def test_parser_sanity():
+    parse = make_parser().parse
 
     a0 = parse('f')
     a1 = parse('f(x)')
@@ -51,6 +52,7 @@ def test_parser_sanity():
     parse('Add(2{dshape("int"),62764584},3.0{dshape("double"),62764408})')
 
 def test_roundtrip():
+    parse = make_parser().parse
 
     a0 = parse(repr(parse('f')))
     a1 = parse(repr(parse('f(x)')))
@@ -88,6 +90,8 @@ def test_roundtrip():
     #build('<appl(x,y)>', [aterm('x', None)])
 
 def test_free():
+    parse = make_parser().parse
+
     x1 = list(free(parse('f(a,b,c)')))
     x2 = list(free(parse('f(a,b,g(c,d,e))')))
 
