@@ -147,7 +147,13 @@ def p_strategy(p):
 
 def p_strategy_value1(p):
     '''strategy_value : strategy_value COMB strategy_value'''
-    p[0] = Strategy(p[2], p[1] + p[3])
+
+    if isinstance(p[1], Strategy):
+        p[0] = Strategy(p[2], p[1] + p[3])
+    elif isinstance(p[3], Strategy):
+        p[0] = Strategy(p[2], p[1] + p[3])
+    else:
+        p[0] = Strategy(p[2], p[1] + p[3])
 
 def p_strategy_value2(p):
     '''strategy_value : value'''
@@ -283,9 +289,11 @@ class NoMatch(Exception):
 class Strategy(object):
 
     def __init__(self, combinator, expr):
-        self.expr = expr
-        self.combinator = combinators[combinator]
-        import pdb; pdb.set_trace()
+        left, right = expr
+        self.combinator = combinators[combinator](left, right)
+
+    def __call__(self):
+        self.combinator(o)
 
 class Rule(object):
     def __init__(self, symtab, lpat, rpat, matcher, builder):
