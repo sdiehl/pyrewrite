@@ -500,25 +500,6 @@ awk = foo ; foo ; foo
 
 
 
-#res = module('''
-
-#Beta :
-    #App(Lam(x, e1), e2) -> Let(x, e2, e1)
-
-#Eta :
-    #App(Lam(x, App(Lam(y, x), x), e2)) -> y
-
-#EvalIf :
-    #If(False(), e1, e2) -> e2
-
-#EvalIf :
-    #If(True(), e1, e2) -> e1
-
-#PropIf :
-    #If(B,F(X),F(Y)) -> F(If(B,X,Y))
-
-#''')
-
 #print res['Beta'](parse.parse('App(Lam(x, y), z)'))
 #print res['EvalIf'](parse.parse('If(False(), x, y)'))
 #print res['EvalIf'](parse.parse('If(True(), x, y)'))
@@ -536,15 +517,27 @@ awk = foo ; foo ; foo
 
 import sys
 import argparse
+import readline
+from functools import partial
 
 banner = """Pyrewrite
 ------------------------------------
 Type :help for for more information.
 """
 
+def completer(mod, text, state):
+    opts = [i for i in mod.keys() if i.startswith(text)]
+    if state < len(opts):
+        return opts[state]
+    else:
+        return None
+
+prelude = {}
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('module', nargs='?', help='Module')
+    parser.add_argument('--noprelude', action='store_true', help='Include prelude')
     args = parser.parse_args()
 
     # State
@@ -556,11 +549,13 @@ def main():
         with open(args.module) as fd:
             mod = module(fd.read())
 
-    print banner
-    import readline
-    import pprint
-    readline.parse_and_bind('')
+    if not args.noprelude:
+        mod.update(prelude)
 
+    print banner
+    import pprint
+    readline.parse_and_bind("tab: complete")
+    readline.set_completer(partial(completer, mod))
 
     while True:
         try:
@@ -568,6 +563,8 @@ def main():
         except EOFError:
             break
 
+
+        #-----------------------------------------------
         if line.startswith('?'):
             at = parse.parse(line[1:])
             matcher = partial(matching.match, freev(at))
@@ -578,13 +575,19 @@ def main():
                 print stack
             else:
                 print 'failed'
+
+        #-----------------------------------------------
         elif line.startswith('!'):
             try:
                 rr = mod[line[1:].strip()]
                 last = rr.rewrite(last)
                 print last
+            except KeyError:
+                print "No such rule or strategy", line[1:]
             except NoMatch:
                 print 'failed'
+
+        #-----------------------------------------------
         elif line.startswith('s'):
             try:
                 rr = mod[line[1:].strip()]
@@ -592,24 +595,43 @@ def main():
             except KeyError:
                 print "No such rule or strategy", line[1:]
 
+        #-----------------------------------------------
         elif line.startswith(':t'):
             try:
                 at = parse.parse(line[2:])
                 print type(at).__name__
             except Exception as e:
                 print e
+
+        #-----------------------------------------------
         elif line.startswith(':bindings'):
             if stack:
                 print stack
             continue
+
+        #-----------------------------------------------
         elif line.startswith(':let'):
             defn = parse.parse(line[4:])
             p = dslparse(defn)
             print p
+
+        #-----------------------------------------------
+        elif line.startswith(':load'):
+            fname = line[5:].strip()
+            try:
+                contents = open(fname).read()
+                mod.update(module(contents))
+            except IOError:
+                print "No such module", fname
+        #-----------------------------------------------
         elif line.startswith(':browse'):
             pprint.pprint(mod)
+
+        #-----------------------------------------------
         elif line.startswith(':help'):
             pass
+
+        #-----------------------------------------------
         else:
             stack = []
             try:
