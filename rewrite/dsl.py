@@ -12,7 +12,7 @@ from collections import namedtuple, defaultdict, Counter
 DEBUG = True
 
 #------------------------------------------------------------------------
-# Combinator Infix Symbols
+# Strategy Combinators
 #------------------------------------------------------------------------
 
 combinators = {
@@ -122,7 +122,7 @@ def t_error(t):
 #--------------------------------
 
 RuleNode = namedtuple( 'Rule', ('label', 'lhs', 'rhs'))
-StrategyNode = namedtuple('Strategy', ('combinator', 'expr'))
+StrategyNode = namedtuple('Strategy', ('label', 'combinator', 'args'))
 
 start = 'definitions'
 
@@ -146,16 +146,19 @@ def p_rule(p):
 
 def p_strategy(p):
     '''strategy : NAME '=' strategy_value'''
-    p[0] = StrategyNode(p[1], p[3])
+    combs, args = p[3]
+    p[0] = StrategyNode(p[1], combs, args)
 
 def p_strategy_value1(p):
     '''strategy_value : strategy_value COMB strategy_value'''
+
     if isinstance(p[1], StrategyNode):
-        p[0] = StrategyNode(p[2], [p[1]] + p[3])
+        p[0] = (p[2], [p[1]] + p[3])
     elif isinstance(p[3], StrategyNode):
-        p[0] = StrategyNode(p[2], p[1] + [p[3]])
+        p[0] = (p[2], p[1] + [p[3]])
     else:
-        p[0] = StrategyNode(p[2], p[1] + p[3])
+        print p[1], p[3]
+        p[0] = (p[2], [p[1],p[3]])
 
 def p_strategy_value2(p):
     '''strategy_value : value'''
@@ -274,9 +277,9 @@ def _init():
     path = os.path.abspath(__file__)
     dir_path = os.path.dirname(path)
 
-    lexer = lex.lex(lextab='rlex')
+    lexer = lex.lex(lextab='rlex', optimize=0)
     parser = yacc.yacc(tabmodule='ryacc',outputdir=dir_path,debug=0,
-        write_tables=1)
+        write_tables=1, optimize=0)
     return parser
 
 def dslparse(pattern):
@@ -291,11 +294,12 @@ class NoMatch(Exception):
 class Strategy(object):
 
     def __init__(self, combinator, expr):
+        print expr
         self.left, self.right = expr
-        self.combinator = combinators[combinator](self.left, self.right)
+        self.combinator = combinator(self.left, self.right)
 
-    def __call__(self):
-        self.combinator(o)
+    def __call__(self, o):
+        return self.combinator(o)
 
     def __repr__(self):
         return '%s(%s,%s)' % (
@@ -303,6 +307,10 @@ class Strategy(object):
             repr(self.left),
             repr(self.right)
         )
+
+#------------------------------------------------------------------------
+# Rules
+#------------------------------------------------------------------------
 
 class Rule(object):
     def __init__(self, symtab, lpat, rpat, matcher, builder):
@@ -334,6 +342,7 @@ class Rule(object):
                 else:
                     b[self.lpat[i]] = el
             values = [b[j] for j in self.rpat]
+            # TODO; prepend
             return self.builder(reversed(values))
         else:
             raise NoMatch()
@@ -343,9 +352,11 @@ class Rule(object):
 
 
 class RuleBlock(object):
-    def __init__(self, rules):
-        assert isinstance(rules, list)
-        self.rules = rules
+    def __init__(self, rules=None):
+        self.rules = rules or []
+
+    def add(self, rule):
+        self.rules.append(rule)
 
     def rewrite(self, pattern):
         for rule in self.rules:
@@ -358,9 +369,34 @@ class RuleBlock(object):
     def __call__(self, pattern):
         return self.rewrite(pattern)
 
+#------------------------------------------------------------------------
+# AST -> Definnition Instances
+#------------------------------------------------------------------------
 
-def build_strategy(r):
-    pass
+def build_strategy(label, env, comb, args):
+    env = env.copy() # mutable state is evil
+    self = object() # forward declaration since rules can be self-recursive
+    comb = combinators[comb]
+
+    sargs = []
+
+    for arg in args:
+        # composition of combinators
+        if isinstance(arg, tuple):
+            subcomb, subargs = arg
+            sargs.append(build_strategy(None, env, subcomb, subargs))
+
+        if isinstance(arg, list):
+            for iarg in arg:
+                # look up the corresponding rewrite rule or
+                # rewrite block and pass the rewrite hook to the
+                # strategy combinator
+                print env, iarg.term
+                rr = env[iarg.term].rewrite
+                sargs.append(rr)
+
+    return Strategy(comb, sargs)
+
 
 def build_rule(l, r):
     i,j = 0, 0
@@ -390,9 +426,14 @@ def build_rule(l, r):
     rr = Rule(symtab, lpat, rpat, matcher, builder)
     return rr
 
-def module(s):
+#------------------------------------------------------------------------
+# Module Constructions
+#------------------------------------------------------------------------
+
+def module(s, builtins=None):
+
     defs = dslparse(s)
-    rules = defaultdict(list)
+    env= {}
 
     # A rewrite rule has the form L : l -> r, where L is the label of
     # the rule, and the term patterns l and r left hand matcher and
@@ -405,13 +446,24 @@ def module(s):
 
             label, l, r = df
             rr = build_rule(l, r)
-            rules[label].append(rr)
+
+            if label in env:
+                env[label].add(rr)
+            else:
+                env[label] = RuleBlock([rr])
 
         elif isinstance(df, StrategyNode):
-            import pdb; pdb.set_trace()
-            print 'Strategy:', df
+            label, comb, args = df
 
-    return {label: RuleBlock(rules[label]) for label in rules}
+            if label in env:
+                raise Exception, "Strategy definition '%s' already defined" % label
+
+            st = build_strategy(label, env, comb, args)
+            env[label] = st
+        else:
+            raise NotImplementedError
+
+    return env
 
 res =  module('''
 foo : A() -> B()
@@ -420,12 +472,17 @@ foo : Succ(0) -> 1
 foo : Succ(1) -> 2
 foo : Succ(x) -> Succ(Succ(x))
 
-bar = foo ; foo ; bar
 bar = foo ; foo
+awk = foo ; foo ; foo
+
 ''')
 
-#print res['foo'].rewrite(parse.parse('Succ(Succ(2,2))'))
-#print res['foo'].rewrite(parse.parse('Succ(Succ(2))'))
+
+print res['foo'].rewrite(parse.parse('Succ(A())'))
+print res['foo'].rewrite(parse.parse('B()'))
+
+print res['bar'](parse.parse('B()'))
+print res['awk'](parse.parse('B()'))
 
 #
 # TODO: backtick support for shelling out to pure Python, or at
@@ -509,6 +566,8 @@ if __name__ == '__main__':
             defn = parse.parse(line[4:])
             p = dslparse(defn)
             print p
+        elif line.startswith(':browse'):
+            pass
         else:
             stack = []
             try:

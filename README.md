@@ -32,3 +32,9 @@ False
 match('succ(<appl(<term>)>)', 'succ(succ(zero))')
 (True, [succ, zero])
 ```
+
+Credits
+-------
+
+Inspired by the [Basil project](https://code.google.com/p/basil/)
+by Jon Riehl
