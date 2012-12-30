@@ -1,13 +1,12 @@
 import parse
-import matching
 import rewrite
+import matching
 from terms import *
 from matching import free, freev
 
 import re
 import os
-from pprint import pprint
-from collections import namedtuple, defaultdict, Counter
+from collections import namedtuple
 
 DEBUG = True
 
@@ -438,10 +437,13 @@ def build_rule(l, r):
 # Module Constructions
 #------------------------------------------------------------------------
 
-def module(s, builtins=None):
+def module(s, _env=None):
 
     defs = dslparse(s)
-    env= {}
+    if _env:
+        env = _env.copy()
+    else:
+        env = {}
 
     # A rewrite rule has the form L : l -> r, where L is the label of
     # the rule, and the term patterns l and r left hand matcher and
@@ -473,49 +475,8 @@ def module(s, builtins=None):
 
     return env
 
-res =  module('''
-foo : A() -> B()
-foo : B() -> A()
-foo : Succ(0) -> 1
-foo : Succ(1) -> 2
-foo : Succ(x) -> Succ(Succ(x))
-foo : Succ(x,y,z) -> Succ(Succ(x,y,y))
-
-bar = foo ; foo
-awk = foo ; foo ; foo
-''')
-
-#print res['foo'].rewrite(parse.parse('Succ(A())'))
-#print res['foo'].rewrite(parse.parse('B()'))
-
-#print res['bar'](parse.parse('B()'))
-#print res['awk'](parse.parse('B()'))
-
-#
-# TODO: backtick support for shelling out to pure Python, or at
-# ``literal_eval`` in locals()
-#
-# f(a,b) = `a + b`
-#
-
-
-
-#print res['Beta'](parse.parse('App(Lam(x, y), z)'))
-#print res['EvalIf'](parse.parse('If(False(), x, y)'))
-#print res['EvalIf'](parse.parse('If(True(), x, y)'))
-
-#res = module('''
-#bar: (1, 2, 2) -> (2, 1, 1)
-#bar: (1, 2, 3) -> (1, 2, 3)
-
-#fizz: [1, 2] -> [2, 1]
-#fizz: 42 -> 24
-#fizz: ([], "glorp", 8) -> ("glorp", 8, [])
-#''')
-
-#module('''foo = b''')
-
 import sys
+import pprint
 import argparse
 import readline
 from functools import partial
@@ -553,7 +514,6 @@ def main():
         mod.update(prelude)
 
     print banner
-    import pprint
     readline.parse_and_bind("tab: complete")
     readline.set_completer(partial(completer, mod))
 
@@ -583,17 +543,17 @@ def main():
                 last = rr.rewrite(last)
                 print last
             except KeyError:
-                print "No such rule or strategy", line[1:]
+                print "No such rule or strategy '%s'" % line[1:]
             except NoMatch:
                 print 'failed'
 
         #-----------------------------------------------
-        elif line.startswith('s'):
+        elif line.startswith(':s'):
             try:
                 rr = mod[line[1:].strip()]
                 print rr
             except KeyError:
-                print "No such rule or strategy", line[1:]
+                print "No such rule or strategy '%s'" % line[1:]
 
         #-----------------------------------------------
         elif line.startswith(':t'):
@@ -606,14 +566,13 @@ def main():
         #-----------------------------------------------
         elif line.startswith(':bindings'):
             if stack:
-                print stack
+                pprint.pprint(stack)
             continue
 
         #-----------------------------------------------
         elif line.startswith(':let'):
-            defn = parse.parse(line[4:])
-            p = dslparse(defn)
-            print p
+            env = module(line[4:], _env=mod)
+            mod.update(env)
 
         #-----------------------------------------------
         elif line.startswith(':load'):
