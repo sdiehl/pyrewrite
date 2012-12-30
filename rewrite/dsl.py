@@ -7,7 +7,7 @@ from matching import free, freev
 import re
 import os
 from pprint import pprint
-from collections import defaultdict, Counter
+from collections import namedtuple, defaultdict, Counter
 
 DEBUG = True
 
@@ -121,6 +121,8 @@ def t_error(t):
 
 #--------------------------------
 
+RuleNode = namedtuple( 'Rule', ('label', 'lhs', 'rhs'))
+
 start = 'definitions'
 
 def p_definitions1(p):
@@ -137,7 +139,7 @@ def p_definitions2(p):
 
 def p_rule(p):
     '''rule : NAME ':' value ARROW value'''
-    p[0] = (p[1],p[3],p[5])
+    p[0] = RuleNode(p[1],p[3],p[5])
 
 #--------------------------------
 
@@ -147,11 +149,10 @@ def p_strategy(p):
 
 def p_strategy_value1(p):
     '''strategy_value : strategy_value COMB strategy_value'''
-
     if isinstance(p[1], Strategy):
-        p[0] = Strategy(p[2], p[1] + p[3])
+        p[0] = Strategy(p[2], [p[1]] + p[3])
     elif isinstance(p[3], Strategy):
-        p[0] = Strategy(p[2], p[1] + p[3])
+        p[0] = Strategy(p[2], p[1] + [p[3]])
     else:
         p[0] = Strategy(p[2], p[1] + p[3])
 
@@ -289,11 +290,18 @@ class NoMatch(Exception):
 class Strategy(object):
 
     def __init__(self, combinator, expr):
-        left, right = expr
-        self.combinator = combinators[combinator](left, right)
+        self.left, self.right = expr
+        self.combinator = combinators[combinator](self.left, self.right)
 
     def __call__(self):
         self.combinator(o)
+
+    def __repr__(self):
+        return '%s(%s,%s)' % (
+            self.combinator.__class__.__name__,
+            repr(self.left),
+            repr(self.right)
+        )
 
 class Rule(object):
     def __init__(self, symtab, lpat, rpat, matcher, builder):
@@ -391,7 +399,7 @@ def module(s):
     # augmented by the ``where`` clause.
 
     for df in defs:
-        if isinstance(df, tuple):
+        if isinstance(df, RuleNode):
             label, l, r = df
             rr = build_rule(l, r)
             rules[label].append(rr)
@@ -413,6 +421,13 @@ bar = foo ; foo
 
 print res['foo'].rewrite(parse.parse('Succ(Succ(2,2))'))
 print res['foo'].rewrite(parse.parse('Succ(Succ(2))'))
+
+#
+# TODO: backtick support for shelling out to pure Python
+# f(a,b) = `a + b`
+#
+
+
 
 #res = module('''
 
@@ -460,8 +475,10 @@ if __name__ == '__main__':
         except EOFError:
             break
 
-        if line == '!!':
-            at = last
+        if line.startswith('?'):
+            pass
+        elif line.startswith('!'):
+            pass
         else:
             at = parse.parse(line)
 
