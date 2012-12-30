@@ -122,6 +122,7 @@ def t_error(t):
 #--------------------------------
 
 RuleNode = namedtuple( 'Rule', ('label', 'lhs', 'rhs'))
+StrategyNode = namedtuple('Strategy', ('combinator', 'expr'))
 
 start = 'definitions'
 
@@ -145,16 +146,16 @@ def p_rule(p):
 
 def p_strategy(p):
     '''strategy : NAME '=' strategy_value'''
-    p[0] = (p[1], p[3])
+    p[0] = StrategyNode(p[1], p[3])
 
 def p_strategy_value1(p):
     '''strategy_value : strategy_value COMB strategy_value'''
-    if isinstance(p[1], Strategy):
-        p[0] = Strategy(p[2], [p[1]] + p[3])
-    elif isinstance(p[3], Strategy):
-        p[0] = Strategy(p[2], p[1] + [p[3]])
+    if isinstance(p[1], StrategyNode):
+        p[0] = StrategyNode(p[2], [p[1]] + p[3])
+    elif isinstance(p[3], StrategyNode):
+        p[0] = StrategyNode(p[2], p[1] + [p[3]])
     else:
-        p[0] = Strategy(p[2], p[1] + p[3])
+        p[0] = StrategyNode(p[2], p[1] + p[3])
 
 def p_strategy_value2(p):
     '''strategy_value : value'''
@@ -399,11 +400,15 @@ def module(s):
     # augmented by the ``where`` clause.
 
     for df in defs:
+
         if isinstance(df, RuleNode):
+
             label, l, r = df
             rr = build_rule(l, r)
             rules[label].append(rr)
-        elif isinstance(df, Strategy):
+
+        elif isinstance(df, StrategyNode):
+            import pdb; pdb.set_trace()
             print 'Strategy:', df
 
     return {label: RuleBlock(rules[label]) for label in rules}
@@ -419,11 +424,13 @@ bar = foo ; foo ; bar
 bar = foo ; foo
 ''')
 
-print res['foo'].rewrite(parse.parse('Succ(Succ(2,2))'))
-print res['foo'].rewrite(parse.parse('Succ(Succ(2))'))
+#print res['foo'].rewrite(parse.parse('Succ(Succ(2,2))'))
+#print res['foo'].rewrite(parse.parse('Succ(Succ(2))'))
 
 #
-# TODO: backtick support for shelling out to pure Python
+# TODO: backtick support for shelling out to pure Python, or at
+# ``literal_eval`` in locals()
+#
 # f(a,b) = `a + b`
 #
 
@@ -468,6 +475,7 @@ if __name__ == '__main__':
     readline.parse_and_bind('')
 
     last = None
+    stack = []
 
     while True:
         try:
@@ -476,15 +484,37 @@ if __name__ == '__main__':
             break
 
         if line.startswith('?'):
-            pass
+            at = parse.parse(line[1:])
+            matcher = partial(matching.match, freev(at))
+            matched, localbind = matcher(last)
+            stack.extend(localbind)
+
+            if matched:
+                print stack
+            else:
+                print 'failed'
         elif line.startswith('!'):
             pass
+        elif line.startswith(':t'):
+            try:
+                at = parse.parse(line[2:])
+                print type(at).__name__
+            except Exception as e:
+                print e
+        elif line.startswith(':bindings'):
+            if stack:
+                print stack
+            continue
+        elif line.startswith(':let'):
+            defn = parse.parse(line[4:])
+            p = dslparse(defn)
+            print p
         else:
-            at = parse.parse(line)
-
-        try:
-            last = res['foo'](at)
-        except NoMatch:
-            last = at
-
-        print last
+            stack = []
+            try:
+                last = parse.parse(line)
+                print last
+            except EOFError:
+                pass
+            except Exception as e:
+                print e
