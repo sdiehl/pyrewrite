@@ -157,7 +157,6 @@ def p_strategy_value1(p):
     elif isinstance(p[3], StrategyNode):
         p[0] = (p[2], p[1] + [p[3]])
     else:
-        print p[1], p[3]
         p[0] = (p[2], [p[1],p[3]])
 
 def p_strategy_value2(p):
@@ -294,18 +293,19 @@ class NoMatch(Exception):
 class Strategy(object):
 
     def __init__(self, combinator, expr):
-        print expr
         self.left, self.right = expr
-        self.combinator = combinator(self.left, self.right)
+        self.combinator = combinator(self.left.rewrite, self.right.rewrite)
 
     def __call__(self, o):
         return self.combinator(o)
 
+    rewrite = __call__
+
     def __repr__(self):
         return '%s(%s,%s)' % (
             self.combinator.__class__.__name__,
-            repr(self.left),
-            repr(self.right)
+            (self.left),
+            (self.right)
         )
 
 #------------------------------------------------------------------------
@@ -350,6 +350,8 @@ class Rule(object):
     def __call__(self, pattern):
         return self.rewrite(pattern)
 
+    def __repr__(self):
+        return '%r -> %r' % (self.lpat, self.rpat)
 
 class RuleBlock(object):
     def __init__(self, rules=None):
@@ -368,6 +370,13 @@ class RuleBlock(object):
 
     def __call__(self, pattern):
         return self.rewrite(pattern)
+
+    def __repr__(self):
+        out = '[\n'
+        for rule in self.rules:
+            out += ' '*4 + repr(rule) + '\n'
+        out += ']\n'
+        return out
 
 #------------------------------------------------------------------------
 # AST -> Definnition Instances
@@ -391,8 +400,7 @@ def build_strategy(label, env, comb, args):
                 # look up the corresponding rewrite rule or
                 # rewrite block and pass the rewrite hook to the
                 # strategy combinator
-                print env, iarg.term
-                rr = env[iarg.term].rewrite
+                rr = env[iarg.term]
                 sargs.append(rr)
 
     return Strategy(comb, sargs)
@@ -471,18 +479,17 @@ foo : B() -> A()
 foo : Succ(0) -> 1
 foo : Succ(1) -> 2
 foo : Succ(x) -> Succ(Succ(x))
+foo : Succ(x,y,z) -> Succ(Succ(x,y,y))
 
 bar = foo ; foo
 awk = foo ; foo ; foo
-
 ''')
 
+#print res['foo'].rewrite(parse.parse('Succ(A())'))
+#print res['foo'].rewrite(parse.parse('B()'))
 
-print res['foo'].rewrite(parse.parse('Succ(A())'))
-print res['foo'].rewrite(parse.parse('B()'))
-
-print res['bar'](parse.parse('B()'))
-print res['awk'](parse.parse('B()'))
+#print res['bar'](parse.parse('B()'))
+#print res['awk'](parse.parse('B()'))
 
 #
 # TODO: backtick support for shelling out to pure Python, or at
@@ -527,16 +534,37 @@ print res['awk'](parse.parse('B()'))
 
 #module('''foo = b''')
 
-if __name__ == '__main__':
-    import readline
-    readline.parse_and_bind('')
+import sys
+import argparse
 
+banner = """Pyrewrite
+------------------------------------
+Type :help for for more information.
+"""
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('module', nargs='?', help='Module')
+    args = parser.parse_args()
+
+    # State
+    mod = {}
     last = None
     stack = []
 
+    if args.module:
+        with open(args.module) as fd:
+            mod = module(fd.read())
+
+    print banner
+    import readline
+    import pprint
+    readline.parse_and_bind('')
+
+
     while True:
         try:
-            line = raw_input('>> ')
+            line = raw_input('>> ').strip()
         except EOFError:
             break
 
@@ -551,7 +579,19 @@ if __name__ == '__main__':
             else:
                 print 'failed'
         elif line.startswith('!'):
-            pass
+            try:
+                rr = mod[line[1:].strip()]
+                last = rr.rewrite(last)
+                print last
+            except NoMatch:
+                print 'failed'
+        elif line.startswith('s'):
+            try:
+                rr = mod[line[1:].strip()]
+                print rr
+            except KeyError:
+                print "No such rule or strategy", line[1:]
+
         elif line.startswith(':t'):
             try:
                 at = parse.parse(line[2:])
@@ -567,6 +607,8 @@ if __name__ == '__main__':
             p = dslparse(defn)
             print p
         elif line.startswith(':browse'):
+            pprint.pprint(mod)
+        elif line.startswith(':help'):
             pass
         else:
             stack = []
@@ -577,3 +619,6 @@ if __name__ == '__main__':
                 pass
             except Exception as e:
                 print e
+
+if __name__ == '__main__':
+    main()
