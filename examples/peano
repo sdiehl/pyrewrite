@@ -1,12 +1,12 @@
-iszero Zero() -> 1
-iszero (Succ x) -> 0
+iszero: Zero() -> 1
+iszero: Succ(x) -> 0
 
-add Zero() y -> y
-add (Succ x) y -> Succ (add x y)
+a0: add(Zero(),y) -> y
+a0: add(Succ(x),y) -> Succ(add(x,y))
 
-mul Zero() x -> Zero()
-mul x Zero() -> Zero()
-mul (Succ x) y -> add y (mul x y)
+m0: mul(Zero(),x) -> Zero()
+m0: mul(x,Zero()) -> Zero()
+m0: mul(Succ(x),y) -> add(y,(mul(x,y)))
 
-int Zero() -> 0
-int (Succ x) -> fix (toIntegral k) where { k = x + 1 }
+int: Zero() -> 0
+int: Succ(x) -> fix(toIntegral(x))

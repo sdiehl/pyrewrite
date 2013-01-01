@@ -13,3 +13,5 @@ ski: S((K(x)),(K(y)))  -> K(x(y))
 ski: S((K(x)),(I(y)))  -> x
 ski: S(K(x)),y)        -> B(x,y)
 ski: S(x,(K y))        -> C(x,y)
+
+skir = repeat ski
