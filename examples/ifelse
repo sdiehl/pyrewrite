@@ -1,0 +1,8 @@
+EvalIf :
+    If(False(), e1, e2) -> e2
+
+EvalIf :
+    If(True(), e1, e2) -> e1
+
+PropIf :
+    If(B,@F(X),@F(Y)) -> F(If(B,X,Y))

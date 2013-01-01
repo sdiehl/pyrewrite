@@ -1,0 +1,15 @@
+d1: I(x)     -> x
+d1: K(x,y)   -> x
+d1: S(x,y,z) -> x(z)(y(z))
+d1: B(x,y,z) -> x(y(z))
+d1: C(x,y,z) -> (x(z))(y)
+d1: T(x,y) -> x
+d1: F(x,y) -> y
+d1: W(x)   -> x(x)
+
+d2: C(@x(y,z)) = @x(z,y)
+
+ski: S((K(x)),(K(y)))  -> K(x(y))
+ski: S((K(x)),(I(y)))  -> x
+ski: S(K(x)),y)        -> B(x,y)
+ski: S(x,(K y))        -> C(x,y)

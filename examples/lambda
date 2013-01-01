@@ -1,0 +1,5 @@
+Beta :
+    App(Lam(x, e1), e2) -> Let(x, e2, e1)
+
+Eta :
+    App(Lam(x, App(Lam(y, x), x), e2)) -> y
