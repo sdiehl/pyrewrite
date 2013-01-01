@@ -1,0 +1,17 @@
+E : Dnf(Atom(x))    -> Atom(x)
+E : Dnf(Not(x))     -> DnfR(Not(Dnf(x)))
+E : Dnf(And(x, y))  -> DnfR(And(Dnf(x), Dnf(y)))
+E : Dnf(Or(x, y))   -> Or(Dnf(x), Dnf(y))
+E : Dnf(Impl(x, y)) -> Dnf(Or(Not(x), y))
+E : Dnf(Eq(x, y))   -> Dnf(And(Impl(x, y), Impl(y, x)))
+
+E : DnfR(Not(Not(x)))      -> x
+E : DnfR(Not(And(x, y)))   -> Or(Dnf(Not(x)), Dnf(Not(y)))
+E : DnfR(Not(Or(x, y)))    -> Dnf(And(Not(x), Not(y)))
+D : DnfR(Not(x))           -> Not(x)
+
+E : DnfR(And(Or(x, y), z)) -> Or(Dnf(And(x, z)), Dnf(And(y, z)))
+E : DnfR(And(z, Or(x, y))) -> Or(Dnf(And(z, x)), Dnf(And(z, y)))
+D : DnfR(And(x, y))        -> And(x, y)
+
+dnf = innermost(E <+ D)

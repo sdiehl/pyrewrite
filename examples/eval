@@ -1,0 +1,19 @@
+Eval : Not(True)      -> False
+Eval : Not(False)     -> True
+Eval : And(True, x)   -> x
+Eval : And(x, True)   -> x
+Eval : And(False, x)  -> False
+Eval : And(x, False)  -> False
+Eval : Or(True, x)    -> True
+Eval : Or(x, True)    -> True
+Eval : Or(False, x)   -> x
+Eval : Or(x, False)   -> x
+Eval : Impl(True, x)  -> x
+Eval : Impl(x, True)  -> True
+Eval : Impl(False, x) -> True
+Eval : Eq(False, x)   -> Not(x)
+Eval : Eq(x, False)   -> Not(x)
+Eval : Eq(True, x)    -> x
+Eval : Eq(x, True)    -> x
+
+eval = bottomup(repeat(Eval))
