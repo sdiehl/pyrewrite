@@ -1,0 +1,10 @@
+foo : A() -> B()
+foo : B() -> A()
+
+bar : Succ(0) -> 1
+bar : Succ(1) -> 2
+bar : Succ(x) -> Succ(Succ(x))
+
+a0 = foo ; foo
+a1 = foo ; foo ; foo
+a2 = foo <+ foo ; foo

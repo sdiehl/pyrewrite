@@ -2,13 +2,13 @@ from parse import parse
 from terms import *
 
 placeholders = {
-    'appl': aappl,
-    'str': astr,
-    'int': aint,
-    'real': areal,
-    'term': (aterm, aappl, astr, aint, areal),
-    'placeholder': aplaceholder,
-    #'list' : alist
+    'appl'        : aappl,
+    'str'         : astr,
+    'int'         : aint,
+    'real'        : areal,
+    'term'        : (aterm, aappl, astr, aint, areal),
+    'placeholder' : aplaceholder,
+    'list'        : alist
 }
 
 def init(xs):

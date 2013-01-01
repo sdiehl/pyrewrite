@@ -1,19 +1,31 @@
 import ply.lex
 import ply.yacc
+from functools import partial
 
 from rewrite import matching
-from rewrite.terms import *
 from rewrite.matching import free, freev
-from rewrite.plyhacks import yaccfrom, lexfrom
 
-import astnodes as ast
 from parse import dslparse
+import astnodes as ast
 import combinators as comb
 
+combinators = {
+    'fail' : comb.fail,
+    'id'   : comb.Id,
+    '<+'   : comb.Choice,
+    ';'    : comb.Seq,
+}
+
+#------------------------------------------------------------------------
+# Exceptions
 #------------------------------------------------------------------------
 
 class NoMatch(Exception):
     pass
+
+#------------------------------------------------------------------------
+# Strategies
+#------------------------------------------------------------------------
 
 class Strategy(object):
 
@@ -32,18 +44,6 @@ class Strategy(object):
             (self.left),
             (self.right)
         )
-
-#------------------------------------------------------------------------
-# Rules
-#------------------------------------------------------------------------
-
-
-combinators = {
-    'fail' : comb.fail,
-    'id'   : comb.Id,
-    '<+'   : comb.Choice,
-    ';'    : comb.Seq,
-}
 
 class Rule(object):
     def __init__(self, symtab, lpat, rpat, matcher, builder):
@@ -112,7 +112,7 @@ class RuleBlock(object):
         return out
 
 #------------------------------------------------------------------------
-# AST -> Definnition Instances
+# Buld Automata
 #------------------------------------------------------------------------
 
 def build_strategy(label, env, comb, args):
@@ -172,8 +172,8 @@ def build_rule(l, r):
 #------------------------------------------------------------------------
 
 def module(s, _env=None):
-
     defs = dslparse(s)
+
     if _env:
         env = _env.copy()
     else:

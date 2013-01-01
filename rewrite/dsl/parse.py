@@ -6,11 +6,8 @@ import astnodes as ast
 import rewrite.terms as aterm
 
 # Precompiled modules
-try:
-    import dlex
-    import dyacc
-except ImportError:
-    pass
+import _dlex
+import _dyacc
 
 from functools import partial
 from rewrite.plyhacks import yaccfrom, lexfrom
@@ -271,24 +268,27 @@ def p_error(p):
     else:
         raise SyntaxError("Syntax error at EOF")
 
+#------------------------------------------------------------------------
+# DSL Parser
+#------------------------------------------------------------------------
 
 def load_parser(debug=False):
     if debug:
         from ply import lex, yacc
         path = os.path.abspath(__file__)
         dir_path = os.path.dirname(path)
-        lexer = lex.lex(lextab="dlex", outputdir=dir_path, optimize=1)
-        parser = yacc.yacc(tabmodule='dyacc',outputdir=dir_path,
+        lexer = lex.lex(lextab="_dlex", outputdir=dir_path, optimize=1)
+        parser = yacc.yacc(tabmodule='_dyacc',outputdir=dir_path,
                 write_tables=1, debug=0, optimize=1)
         return partial(parser.parse, lexer=lexer)
     else:
         module = sys.modules[__name__]
-        lexer = lexfrom(module, dlex)
-        parser = yaccfrom(module, dyacc, lexer)
+        lexer = lexfrom(module, _dlex)
+        parser = yaccfrom(module, _dyacc, lexer)
 
         # curry the lexer into the parser
         return partial(parser.parse, lexer=lexer)
 
 def dslparse(pattern):
-    parse = load_parser(True)
+    parse = load_parser()
     return parse(pattern)
