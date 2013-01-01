@@ -19,8 +19,8 @@ import sys
 from terms import *
 
 # Precompiled modules
-import alex
-import ayacc
+import _alex
+import _ayacc
 from plyhacks import yaccfrom, lexfrom
 
 DEBUG = True
@@ -252,10 +252,10 @@ def load_parser(debug=False):
         from ply import lex, yacc
         path = os.path.abspath(__file__)
         dir_path = os.path.dirname(path)
-        lexer = lex.lex(lextab="alex", outputdir=dir_path, optimize=1)
-        parser = yacc.yacc(tabmodule='ayacc',outputdir=dir_path,
+        lexer = lex.lex(lextab="_alex", outputdir=dir_path, optimize=1)
+        parser = yacc.yacc(tabmodule='_ayacc',outputdir=dir_path,
                 write_tables=1, debug=0, optimize=1)
-        return parser
+        return partial(parser.parse, lexer=lexer)
     else:
         module = sys.modules[__name__]
         lexer = lexfrom(module, alex)
