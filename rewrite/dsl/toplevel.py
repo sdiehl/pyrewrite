@@ -1,5 +1,3 @@
-import ply.lex
-import ply.yacc
 from functools import partial
 
 from rewrite import matching
@@ -61,7 +59,7 @@ class Rule(object):
         if matches:
 
             # Short circuit for trivial rewrites
-            if len(self.rpat) == 0:
+            if len(self.rpat) == 0 and len(self.lpat) == 0:
                 return self.builder([])
 
             # Pattern match and ensure binding equality constraint

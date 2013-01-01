@@ -59,7 +59,7 @@ bt : C                 -- constant
    | real              -- floating point number
 ```
 
-A rewrite rule has the form L : l -> r, where L is the label of the
+A rewrite rule has the form ``L : l -> r``, where L is the label of the
 rule, and the term patterns l and r left hand matcher and r the right
 hand builder.
 
