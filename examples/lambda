@@ -3,3 +3,6 @@ Beta :
 
 Eta :
     App(Lam(x, App(Lam(y, x), x), e2)) -> y
+
+Inline :
+    Let(x, e1, e2[Var(x)]) -> Let(x, e1, e2[e1])

@@ -9,4 +9,8 @@ m0: mul(x,Zero()) -> Zero()
 m0: mul(Succ(x),y) -> add(y,(mul(x,y)))
 
 int: Zero() -> 0
-int: Succ(x) -> fix(toIntegral(x))
+int: Succ(x) -> fix toIntegral(x)
+
+base: Zero -> 0
+succ1: Succ(0) -> 1
+succ2: Succ(Const(v)) -> Const(nv) where {nv = v + 1}
