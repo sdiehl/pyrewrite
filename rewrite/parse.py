@@ -15,8 +15,11 @@ bt : C                 -- constant
 """
 
 import os
+import re
 import sys
-from terms import *
+from functools import partial
+
+import terms as aterm
 
 # Precompiled modules
 import _alex
@@ -121,7 +124,7 @@ def p_expr1(p):
 
 def p_avalue(p):
     "avalue : value '{' annotation '}'"
-    p[0] = aterm(p[1], p[3])
+    p[0] = aterm.aterm(p[1], p[3])
 
 def p_value(p):
     """value : term
@@ -137,15 +140,15 @@ def p_value(p):
 
 def p_term_double(p):
     "term : DOUBLE"
-    p[0] = areal(p[1])
+    p[0] = aterm.areal(p[1])
 
 def p_term_int(p):
     "term : INT"
-    p[0] = aint(p[1])
+    p[0] = aterm.aint(p[1])
 
 def p_term_term(p):
     "term : NAME"
-    p[0] = aterm(p[1], None)
+    p[0] = aterm.aterm(p[1], None)
 
 #--------------------------------
 
@@ -163,7 +166,7 @@ def p_annotation2(p):
 
 def p_appl(p):
     "appl : term '(' appl_value ')' "
-    p[0] = aappl(p[1], p[3])
+    p[0] = aterm.aappl(p[1], p[3])
 
 def p_appl_value1(p):
     "appl_value : expr"
@@ -180,7 +183,7 @@ def p_appl_value2(p):
 
 def p_list(p):
     "list : '[' list_value ']' "
-    p[0] = alist(p[2])
+    p[0] = aterm.alist(p[2])
 
 def p_list_value1(p):
     "list_value : expr"
@@ -197,7 +200,7 @@ def p_list_value2(p):
 
 def p_tuple(p):
     "tuple : '(' tuple_value ')' "
-    p[0] = atupl(p[2])
+    p[0] = aterm.atupl(p[2])
 
 def p_tuple_value1(p):
     "tuple_value : expr"
@@ -214,17 +217,17 @@ def p_tuple_value2(p):
 
 def p_string(p):
     "string : STRING"
-    p[0] = astr(p[1])
+    p[0] = aterm.astr(p[1])
 
 #--------------------------------
 
 def p_placeholder1(p):
     "placeholder : '<' PLACEHOLDER '(' appl_value ')' '>'"
-    p[0] = aplaceholder(p[2], p[4])
+    p[0] = aterm.aplaceholder(p[2], p[4])
 
 def p_placeholder2(p):
     "placeholder : '<' PLACEHOLDER  '>'"
-    p[0] = aplaceholder(p[2], None)
+    p[0] = aterm.aplaceholder(p[2], None)
 
 #--------------------------------
 
@@ -258,8 +261,8 @@ def load_parser(debug=False):
         return partial(parser.parse, lexer=lexer)
     else:
         module = sys.modules[__name__]
-        lexer = lexfrom(module, alex)
-        parser = yaccfrom(module, ayacc, lexer)
+        lexer = lexfrom(module, _alex)
+        parser = yaccfrom(module, _ayacc, lexer)
 
         # curry the lexer into the parser
         return partial(parser.parse, lexer=lexer)

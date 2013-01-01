@@ -2,6 +2,7 @@ import sys
 import pprint
 import argparse
 import readline
+import traceback
 from functools import partial
 
 from rewrite import aparse, match
@@ -127,8 +128,9 @@ def main():
                 print last
             except EOFError:
                 pass
-            #except Exception as e:
-                #print e
+            except Exception as e:
+                print traceback.format_exc()
+
 
 if __name__ == '__main__':
     main()
