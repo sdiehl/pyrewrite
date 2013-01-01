@@ -1,4 +1,4 @@
-from parse import _init, parse
+from parse import parse
 from terms import *
 
 placeholders = {
@@ -112,8 +112,6 @@ def freev(a):
 
 
 def match(pattern, subject, *captures):
-    #parser = _init()
-
     captures = []
 
     p = pattern
@@ -127,8 +125,6 @@ def match(pattern, subject, *captures):
     return True, captures
 
 def matches(pattern, subject):
-    #parser = _init()
-
     p = pattern
     s = subject
 
@@ -138,6 +134,5 @@ def matches(pattern, subject):
     return True
 
 def build(pattern, values):
-    #parser = _init()
     vals = list(values)
     return init(aterm_splice(pattern,vals))

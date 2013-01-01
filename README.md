@@ -33,6 +33,57 @@ match('succ(<appl(<term>)>)', 'succ(succ(zero))')
 (True, [succ, zero])
 ```
 
+Theory
+------
+
+Term rewriting is the procedure for manipulating abstract system
+of symbols where the objects are terms, or expressions with nested
+sub-expressions.
+
+The term structure in such a system is usually presented using a
+grammar. In contrast to string rewriting systems, whose objects are flat
+sequences of symbols, the objects of a term rewriting system form a term
+algebra, which can be visualized as a tree of symbols, the structure of
+the tree fixed by the signature used to define the terms.
+
+```
+t : bt                 -- basic term
+  | bt {ty,m1,...}     -- annotated term
+
+bt : C                 -- constant
+   | C(t1,...,tn)      -- n-ary constructor
+   | (t1,...,tn)       -- n-ary tuple
+   | [t1,...,tn]       -- list
+   | "ccc"             -- quoted string ( explicit double quotes )
+   | int               -- integer
+   | real              -- floating point number
+```
+
+A rewrite rule has the form L : l -> r, where L is the label of the
+rule, and the term patterns l and r left hand matcher and r the right
+hand builder.
+
+*Match*
+
+*Build*
+
+*Blocks*
+
+*Strategies*
+
+*Confluence*
+
+Examples
+-------
+
+*Peano*
+
+*SKI*
+
+*Lambda*
+
+*Python*
+
 Credits
 -------
 

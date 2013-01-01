@@ -36,6 +36,9 @@ class ATerm(object):
     def __repr__(self):
         return str(self)
 
+    def __show__(self):
+        pass
+
 class AAppl(object):
 
     def __init__(self, spine, args):
@@ -48,6 +51,9 @@ class AAppl(object):
 
     def __repr__(self):
         return str(self)
+
+    def __show__(self):
+        pass
 
 class AString(object):
     def __init__(self, val):

@@ -11,10 +11,17 @@ bt : C                 -- constant
    | "ccc"             -- quoted string ( explicit double quotes )
    | int               -- integer
    | real              -- floating point number
+
 """
 
 import os
+import sys
 from terms import *
+
+# Precompiled modules
+import alex
+import ayacc
+from plyhacks import yaccfrom, lexfrom
 
 DEBUG = True
 
@@ -240,17 +247,23 @@ def p_error(p):
 
 #--------------------------------
 
-def make_parser():
-    path = os.path.abspath(__file__)
-    dir_path = os.path.dirname(path)
+def load_parser(debug=False):
+    if debug:
+        from ply import lex, yacc
+        path = os.path.abspath(__file__)
+        dir_path = os.path.dirname(path)
+        lexer = lex.lex(lextab="alex", outputdir=dir_path, optimize=1)
+        parser = yacc.yacc(tabmodule='ayacc',outputdir=dir_path,
+                write_tables=1, debug=0, optimize=1)
+        return parser
+    else:
+        module = sys.modules[__name__]
+        lexer = lexfrom(module, alex)
+        parser = yaccfrom(module, ayacc, lexer)
 
-    lexer = lex.lex(lextab="alex")
-    parser = yacc.yacc(tabmodule='ayacc',outputdir=dir_path,debug=0,
-        write_tables=1)
-    return parser
-
-_init = make_parser
+        # curry the lexer into the parser
+        return partial(parser.parse, lexer=lexer)
 
 def parse(pattern):
-    parser = _init()
-    return parser.parse(pattern)
+    parser = load_parser()
+    return parser(pattern)

@@ -1,4 +1,6 @@
-from terms import AAppl
+from rewrite.terms import AAppl
+
+from functools import wraps
 
 #------------------------------------------------------------------------
 # Rewrite Combinators
@@ -6,6 +8,14 @@ from terms import AAppl
 
 Id = lambda s: s
 compose = lambda f, g: lambda x: f(g(x))
+
+def fix(f):
+    @wraps(f)
+    def Yf(*args):
+        return inner(*args)
+    inner = f(Yf)
+    return Yf
+
 
 def fail():
     raise STFail()
