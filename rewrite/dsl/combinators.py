@@ -35,6 +35,15 @@ class Choice(object):
         except STFail:
             return self.right(t)
 
+class Debug(object):
+    def __init__(self, s):
+        eslf.s = s
+
+    def __call__(self, t):
+        res = self.s(t)
+        print res
+        return res
+
 class Ternary(object):
     def __init__(self, s1, s2, s3):
         self.s1 = s1
