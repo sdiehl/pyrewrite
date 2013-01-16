@@ -3,11 +3,11 @@
 module ATerm
 {
    term = ATerm(identifier name)
-	    | AReal(object n)
-	    | AInt(object n)
+        | AReal(object n)
+        | AInt(object n)
         | AStr(string val)
         | Appl(term fn, type* args)
-	    | AList(term elt)
+        | AList(term elt)
 
    annotation = AAnnotation(term, term)
 }
