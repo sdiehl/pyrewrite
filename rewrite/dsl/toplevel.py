@@ -10,12 +10,16 @@ import combinators as comb
 combinators = {
     'fail'      : comb.fail,
     'id'        : comb.Id,
+    'repeat'    : comb.Repeat,
+    'all'       : comb.All,
+    'some'      : comb.Some,
     '<+'        : comb.Choice,
     ';'         : comb.Seq,
-    'innermost' : comb.Innermost,
-    'bottomup'  : comb.Bottomup,
-    'all'       : comb.All,
     'try'       : comb.Try,
+    'topdown'   : comb.Topdown,
+    'bottomup'  : comb.Bottomup,
+    'innermost' : comb.Innermost,
+    'debug'     : comb.Debug,
 }
 
 #------------------------------------------------------------------------
@@ -204,6 +208,7 @@ def module(s, _env=None):
 
             st = build_strategy(label, env, comb, args)
             env[label] = st
+
         else:
             raise NotImplementedError
 

@@ -130,6 +130,7 @@ def freev(a):
 
 
 def match(pattern, subject, *captures):
+    # TODO: migrate to dict to match stratego bindings
     captures = []
 
     p = pattern

@@ -31,12 +31,15 @@ ATermSyntaxError: {msg}
 #------------------------------------------------------------------------
 # Lexer
 #------------------------------------------------------------------------
+prefix_combinators = [
+    'rec',
+]
 
 infix_combinators = [
     'fail' ,
     'id',
     '<+',
-    ';'    ,
+    ';',
 ]
 
 combinators = [
@@ -161,7 +164,7 @@ def p_strategy_def1(p):
 
 def p_strategy_def2(p):
     '''strategy : NAME '(' strategy_args ')' '=' strategy_value'''
-    combs, args = p[3]
+    combs, args = p[6]
     p[0] = ast.StrategyNode(p[1], combs, args)
 
 #--------------------------------
