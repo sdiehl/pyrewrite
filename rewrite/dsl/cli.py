@@ -9,8 +9,6 @@ from rewrite import aparse, match
 from rewrite.matching import free, freev
 from toplevel import module, NoMatch
 
-# TODO: backticks literal_eval
-
 banner = """Pyrewrite
 ------------------------------------
 Type :help for for more information.

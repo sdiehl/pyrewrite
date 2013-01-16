@@ -67,6 +67,13 @@ def test_roundtrip():
     assert repr(a6) == 'f([1, 2, 3])'
     assert repr(a7) == '(1, 2, 3)'
 
+def test_free():
+    x1 = list(free(parse('f(a,b,c)')))
+    x2 = list(free(parse('f(a,b,g(c,d,e))')))
+
+    assert x1 == ['a','b','c']
+    assert x2 == ['a','b','c','d','e']
+
 #def test_matching():
     #match('x', 'x')
     #match('x', 'y')
@@ -83,10 +90,3 @@ def test_roundtrip():
     #build('f(<int>)', [aint(1)])
     #build('f(x, y, g(<int>,<int>))', [aint(1), aint(2)])
     #build('<appl(x,y)>', [aterm('x', None)])
-
-def test_free():
-    x1 = list(free(parse('f(a,b,c)')))
-    x2 = list(free(parse('f(a,b,g(c,d,e))')))
-
-    assert x1 == ['a','b','c']
-    assert x2 == ['a','b','c','d','e']

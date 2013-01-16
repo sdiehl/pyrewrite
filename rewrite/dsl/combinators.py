@@ -37,7 +37,7 @@ class Choice(object):
 
 class Debug(object):
     def __init__(self, s):
-        eslf.s = s
+        self.s = s
 
     def __call__(self, t):
         res = self.s(t)
@@ -113,6 +113,8 @@ class Try(object):
         try:
             return self.s(o)
         except STFail:
+            return o
+        except Exception:
             return o
 
 class Topdown(object):

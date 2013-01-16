@@ -1,0 +1,17 @@
+# both(f,g) = lambda x: f(x) && g(x)
+# compose(f,g) =  lambda x: f(g(x))
+
+fuse: map(f, concat(x,y)) -> 
+    concat(map(f,x), map(f,y))
+
+fuse: map(f, map(g, xs)) -> 
+    map(compose(f,g), xs)
+
+fuse: filter(f, filter(g, xs)) -> 
+    filter(both(f,g), xs)
+
+fuse: map(f, zipwith(g, xs, ys)) -> 
+    zipwith(compose(f,g),xs,ys)
+
+fuse: zipwith(f, map(g, xs), map(g, ys)) -> 
+    zipwith(compose(f,g), xs, ys)

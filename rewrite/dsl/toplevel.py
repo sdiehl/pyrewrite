@@ -8,10 +8,14 @@ import astnodes as ast
 import combinators as comb
 
 combinators = {
-    'fail' : comb.fail,
-    'id'   : comb.Id,
-    '<+'   : comb.Choice,
-    ';'    : comb.Seq,
+    'fail'      : comb.fail,
+    'id'        : comb.Id,
+    '<+'        : comb.Choice,
+    ';'         : comb.Seq,
+    'innermost' : comb.Innermost,
+    'bottomup'  : comb.Bottomup,
+    'all'       : comb.All,
+    'try'       : comb.Try,
 }
 
 #------------------------------------------------------------------------
@@ -28,8 +32,12 @@ class NoMatch(Exception):
 class Strategy(object):
 
     def __init__(self, combinator, expr):
-        self.left, self.right = expr
-        self.combinator = combinator(self.left.rewrite, self.right.rewrite)
+        self.subrules = [a.rewrite for a in expr]
+        try:
+            self.combinator = combinator(*self.subrules)
+        except TypeError:
+            raise TypeError, 'Wrong number of arguments to combinator: %s'\
+                % str(combinator)
 
     def __call__(self, o):
         return self.combinator(o)
@@ -37,10 +45,9 @@ class Strategy(object):
     rewrite = __call__
 
     def __repr__(self):
-        return '%s(%s,%s)' % (
+        return '%s(%s)' % (
             self.combinator.__class__.__name__,
-            (self.left),
-            (self.right)
+            self.subrules
         )
 
 class Rule(object):

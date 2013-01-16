@@ -6,8 +6,11 @@ import astnodes as ast
 import rewrite.terms as aterm
 
 # Precompiled modules
-import _dlex
-import _dyacc
+try:
+    import _dlex
+    import _dyacc
+except ImportError:
+    pass
 
 from functools import partial
 from rewrite.plyhacks import yaccfrom, lexfrom
@@ -29,15 +32,20 @@ ATermSyntaxError: {msg}
 # Lexer
 #------------------------------------------------------------------------
 
-combinators = [
+infix_combinators = [
     'fail' ,
-    'id'   ,
-    '<+'   ,
+    'id',
+    '<+',
     ';'    ,
 ]
 
+combinators = [
+    'innermost',
+]
+
 tokens = (
-    'NAME', 'INT', 'DOUBLE', 'ARROW', 'STRING', 'COMB' #, 'CLAUSE'
+    'NAME', 'INT', 'DOUBLE', 'ARROW', 'STRING', 'INCOMB',
+    #, 'CLAUSE'
 )
 
 literals = [
@@ -59,7 +67,7 @@ t_ignore = '\x20\x09\x0A\x0D'
 
 # dynamically generate the regex for the Combinator token from
 # the keys of the combinator dictionary
-t_COMB  = '|'.join(map(re.escape, combinators))
+t_INCOMB = '|'.join(map(re.escape, infix_combinators))
 
 unquote = re.compile('"(?:[^\']*)\'|"([^"]*)"')
 
@@ -94,6 +102,10 @@ def t_STRING(t):
 #def t_CLAUSE(t):
     #r'not|rec'
     #return t
+
+def t_COMMENT(t):
+    r'\#.*'
+    pass
 
 def t_error(t):
     print("Unknown token '%s'" % t.value[0])
@@ -142,13 +154,30 @@ def p_rule(p):
 
 #--------------------------------
 
-def p_strategy(p):
+def p_strategy_def1(p):
     '''strategy : NAME '=' strategy_value'''
     combs, args = p[3]
     p[0] = ast.StrategyNode(p[1], combs, args)
 
+def p_strategy_def2(p):
+    '''strategy : NAME '(' strategy_args ')' '=' strategy_value'''
+    combs, args = p[3]
+    p[0] = ast.StrategyNode(p[1], combs, args)
+
+#--------------------------------
+
+def p_strategy_args1(p):
+    '''strategy_args : strategy_args ',' strategy_args'''
+    p[0] = [p[1], p[3]]
+
+def p_strategy_args2(p):
+    '''strategy_args : NAME'''
+    p[0] = p[1]
+
+#--------------------------------
+
 def p_strategy_value1(p):
-    '''strategy_value : strategy_value COMB strategy_value'''
+    '''strategy_value : strategy_value INCOMB strategy_value '''
 
     if isinstance(p[1], ast.StrategyNode):
         p[0] = (p[2], [p[1]] + p[3])
@@ -158,6 +187,10 @@ def p_strategy_value1(p):
         p[0] = (p[2], [p[1],p[3]])
 
 def p_strategy_value2(p):
+    '''strategy_value : NAME '(' strategy_value ')' '''
+    p[0] = (p[1], [p[3]])
+
+def p_strategy_value3(p):
     '''strategy_value : value'''
     p[0] = [p[1]]
 
@@ -272,14 +305,14 @@ def p_error(p):
 # DSL Parser
 #------------------------------------------------------------------------
 
-def load_parser(debug=False):
+def load_parser(debug=True):
     if debug:
         from ply import lex, yacc
         path = os.path.abspath(__file__)
         dir_path = os.path.dirname(path)
-        lexer = lex.lex(lextab="_dlex", outputdir=dir_path, optimize=1)
+        lexer = lex.lex(lextab="_dlex", outputdir=dir_path, optimize=0)
         parser = yacc.yacc(tabmodule='_dyacc',outputdir=dir_path,
-                write_tables=1, debug=0, optimize=1)
+                write_tables=0, debug=0, optimize=0)
         return partial(parser.parse, lexer=lexer)
     else:
         module = sys.modules[__name__]
@@ -290,5 +323,5 @@ def load_parser(debug=False):
         return partial(parser.parse, lexer=lexer)
 
 def dslparse(pattern):
-    parse = load_parser()
+    parse = load_parser(debug=True)
     return parse(pattern)
