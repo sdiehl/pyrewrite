@@ -47,7 +47,7 @@ combinators = [
 ]
 
 tokens = (
-    'NAME', 'INT', 'DOUBLE', 'ARROW', 'STRING', 'INCOMB',
+    'NAME', 'INT', 'DOUBLE', 'ARROW', 'STRING', 'INCOMB', 'AS'
     #, 'CLAUSE'
 )
 
@@ -94,6 +94,10 @@ def t_INT(t):
 
 def t_ARROW(t):
     r'->'
+    return t
+
+def t_AS(t):
+    r'\@'
     return t
 
 def t_STRING(t):
