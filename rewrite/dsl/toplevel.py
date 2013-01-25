@@ -7,6 +7,9 @@ from parse import dslparse
 import astnodes as ast
 import combinators as comb
 
+def nameof(cls):
+    return cls.__class__.__name__
+
 combinators = {
     'fail'      : comb.fail,
     'id'        : comb.Id,
@@ -37,6 +40,8 @@ class Strategy(object):
 
     def __init__(self, combinator, expr):
         self.subrules = [a.rewrite for a in expr]
+        self.names = [nameof(a) for a in expr]
+
         try:
             self.combinator = combinator(*self.subrules)
         except TypeError:
@@ -51,7 +56,7 @@ class Strategy(object):
     def __repr__(self):
         return '%s(%s)' % (
             self.combinator.__class__.__name__,
-            self.subrules
+            self.names
         )
 
 class Rule(object):
