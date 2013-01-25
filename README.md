@@ -85,6 +85,25 @@ Eval : Eq(x, True)    -> x
 eval = bottomup(repeat(Eval))
 ```
 
+```
+all(s)     Apply parameter strategy s to each direct subterm
+rec(s)
+
+s1;s2      Sequential composition
+s1<+s2     Deterministic choice first try s1, s2 if fail
+s1<s2+s3   if s1 succeeds then commit s2, else s3
+```
+
+```
+try(s)       = s <+ id
+repeat(s)    = try(s; repeat(s))
+topdown(s)   = s; all(topdown(s))
+bottomup(s)  = all(bottomup(s)); s
+alltd(s)     = s <+ all(alltd(s))
+downup(s)    = s; all(downup(s)); s
+innermost(s) = bottomup(try(s; innermost(s)))
+```
+
 *Match*
 
 *Build*
@@ -94,6 +113,8 @@ eval = bottomup(repeat(Eval))
 *Strategies*
 
 *Confluence*
+
+*As-Patterns*
 
 Examples
 -------
