@@ -62,8 +62,20 @@ bt : C                 -- constant
 ```
 
 A rewrite rule has the form ``L : l -> r``, where L is the label of the
-rule, and the term patterns l and r left hand matcher and r the right
-hand builder.
+rule, and the term patterns ``l`` and ``r`` left hand matcher and ``r``
+the right hand builder.
+
+*Match* and *Build*
+
+The specification of a rewrite rule system consists of two actions
+*matching* and *building*. Matching deconstructs terms into into a
+environment object with term objects bound to identifiers in the
+context based on deconstruction pattern.
+
+Building is the dual notation to matching, it constructs term
+terms from environments of bindings based a construction pattern.
+
+*Blocks*
 
 ```
 Eval : Not(True)      -> False
@@ -87,6 +99,8 @@ Eval : Eq(x, True)    -> x
 eval = bottomup(repeat(Eval))
 ```
 
+*Strategies*
+
 ```
 all(s)     Apply parameter strategy s to each direct subterm
 rec(s)
@@ -105,14 +119,6 @@ alltd(s)     = s <+ all(alltd(s))
 downup(s)    = s; all(downup(s)); s
 innermost(s) = bottomup(try(s; innermost(s)))
 ```
-
-*Match*
-
-*Build*
-
-*Blocks*
-
-*Strategies*
 
 *Confluence*
 
