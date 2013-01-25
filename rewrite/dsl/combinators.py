@@ -3,6 +3,13 @@ from rewrite.terms import AAppl
 from functools import wraps
 
 #------------------------------------------------------------------------
+# Exceptions
+#------------------------------------------------------------------------
+
+class STFail(Exception):
+    pass
+
+#------------------------------------------------------------------------
 # Rewrite Combinators
 #------------------------------------------------------------------------
 
@@ -16,24 +23,17 @@ def fix(f):
     inner = f(Yf)
     return Yf
 
-
 def fail():
     raise STFail()
 
-class STFail(Exception):
-    pass
-
-class Choice(object):
-    def __init__(self, left=None, right=None):
-        self.left = left
-        self.right = right
-        assert left and right, 'Must provide two arguments to Choice'
-
-    def __call__(self, t):
+def Choice(left=None, right=None):
+    @wraps(Choice)
+    def ap(t):
         try:
-            return self.left(t)
+            return left(t)
         except STFail:
-            return self.right(t)
+            return right(t)
+    return ap
 
 class Debug(object):
     def __init__(self, s):
