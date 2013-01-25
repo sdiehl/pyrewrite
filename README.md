@@ -65,7 +65,7 @@ A rewrite rule has the form ``L : l -> r``, where L is the label of the
 rule, and the term patterns ``l`` and ``r`` left hand matcher and ``r``
 the right hand builder.
 
-*Match* and *Build*
+**Match** and **Build**
 
 The specification of a rewrite rule system consists of two actions
 *matching* and *building*. Matching deconstructs terms into into a
@@ -75,7 +75,7 @@ context based on deconstruction pattern.
 Building is the dual notation to matching, it constructs term
 terms from environments of bindings based a construction pattern.
 
-*Blocks*
+**Blocks**
 
 ```
 Eval : Not(True)      -> False
@@ -99,7 +99,7 @@ Eval : Eq(x, True)    -> x
 eval = bottomup(repeat(Eval))
 ```
 
-*Strategies*
+**Strategies**
 
 ```
 all(s)     Apply parameter strategy s to each direct subterm
@@ -120,20 +120,35 @@ downup(s)    = s; all(downup(s)); s
 innermost(s) = bottomup(try(s; innermost(s)))
 ```
 
-*Confluence*
+**Confluence**
 
-*As-Patterns*
+**As-Patterns**
 
 Examples
 -------
 
-*Peano*
+**Peano**
 
-*SKI*
+**SKI**
 
-*Lambda*
+**Lambda**
 
-*Python*
+The simple lambda calculus consists of a set of expressions
+called *Expr*:
+
+```haskell
+Expr = Var | App | Lam
+```
+
+With the following constructions:
+
+```haskell
+Var (x : Sym)
+App (e0 : Expr) (e1 : Expr)
+Lam (x : Sym) (e0 : Expr)
+```
+
+**Python**
 
 Credits
 -------

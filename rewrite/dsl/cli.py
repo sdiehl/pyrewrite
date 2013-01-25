@@ -96,7 +96,7 @@ def main():
                 print 'failed'
 
         #-----------------------------------------------
-        elif line.startswith(':s') or line.startswith(':show'):
+        elif line.startswith(':show') or line.startswith(':s'):
             try:
                 rr = mod[line[1:].strip()]
                 print rr
@@ -104,7 +104,7 @@ def main():
                 print "No such rule or strategy '%s'" % line[1:]
 
         #-----------------------------------------------
-        elif line.startswith(':t') or line.startswith(':type'):
+        elif line.startswith(':type') or line.startswith(':t'):
             try:
                 at = aparse(line[2:])
                 print type(at).__name__
@@ -130,6 +130,7 @@ def main():
                 mod.update(module(contents))
             except IOError:
                 print "No such module", fname
+
         #-----------------------------------------------
         elif line.startswith(':browse'):
             pprint.pprint(mod)
