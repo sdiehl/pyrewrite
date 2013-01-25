@@ -130,5 +130,7 @@ Examples
 Credits
 -------
 
-Inspired by the [Basil project](https://code.google.com/p/basil/)
+Inspired by the [StrategoXT](http://strategoxt.org/) project.
+
+Also inspired by the [Basil project](https://code.google.com/p/basil/)
 by Jon Riehl
