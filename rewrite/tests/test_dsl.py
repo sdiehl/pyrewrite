@@ -35,7 +35,7 @@ EvalIf :
     If(True(), e1, e2) -> e1
 
 PropIf :
-    If(B,@F(X),@F(Y)) -> F(If(B,X,Y))
+    If(B,e1@F(X),@F(Y)) -> F(If(B,X,Y))
 """
 
 def test_patterns_parse():

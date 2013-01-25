@@ -1,5 +1,6 @@
-from parse import parse
 from terms import *
+from parse import parse
+import astnodes as ast
 
 placeholders = {
     'appl'        : aappl,
@@ -104,6 +105,14 @@ def free(a):
         for ai in a.args:
             for aj in free(ai):
                 yield aj
+
+    elif isinstance(a, ast.AsNode):
+        if a.tag:
+            yield (a.tag, a.pattern)
+        else:
+            if isinstance(a.pattern, aappl):
+                yield a.pattern.spine
+                #yield a.pattern.args
 
     else:
         raise NotImplementedError

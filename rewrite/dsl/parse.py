@@ -2,7 +2,7 @@ import os
 import re
 import sys
 
-import astnodes as ast
+import rewrite.astnodes as ast
 import rewrite.terms as aterm
 
 # Precompiled modules

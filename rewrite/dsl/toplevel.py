@@ -2,9 +2,9 @@ from functools import partial
 
 from rewrite import matching
 from rewrite.matching import free, freev
+import rewrite.astnodes as ast
 
 from parse import dslparse
-import astnodes as ast
 import combinators as comb
 
 def nameof(cls):
@@ -173,7 +173,7 @@ def build_rule(l, r):
         if v in symtab:
             rpat.append(symtab[v])
         else:
-            raise Exception('Unbound variable')
+            raise Exception('Unbound variable: %s' % v)
 
     matcher = partial(matching.match, freev(l))
     builder = partial(matching.build, freev(r))
