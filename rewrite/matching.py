@@ -89,6 +89,7 @@ def aterm_splice(a, elts):
     else:
         raise NotImplementedError
 
+# TODO: move over to dict, return tuple ('var', 'binder')
 def free(a):
     if isinstance(a, (aint, areal, astr)):
         pass
@@ -112,7 +113,9 @@ def free(a):
         else:
             if isinstance(a.pattern, aappl):
                 yield a.pattern.spine
-                #yield a.pattern.args
+                for ai in a.pattern.args:
+                    for aj in free(ai):
+                        yield aj
 
     else:
         raise NotImplementedError

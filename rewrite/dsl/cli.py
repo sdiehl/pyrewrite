@@ -14,6 +14,26 @@ banner = """Pyrewrite
 Type :help for for more information.
 """
 
+help = """
+-- Usage:
+
+  >> f(x,1)
+  >> ?f(a,b)
+  [x,y]
+  >> !rule
+
+-- Commmands:
+
+  :show
+  :type
+  :bindings
+  :let
+  :load
+  :browse
+  :help
+
+"""
+
 def completer(mod, text, state):
     opts = [i for i in mod.keys() if i.startswith(text)]
     if state < len(opts):
@@ -76,7 +96,7 @@ def main():
                 print 'failed'
 
         #-----------------------------------------------
-        elif line.startswith(':s'):
+        elif line.startswith(':s') or line.startswith(':show'):
             try:
                 rr = mod[line[1:].strip()]
                 print rr
@@ -84,7 +104,7 @@ def main():
                 print "No such rule or strategy '%s'" % line[1:]
 
         #-----------------------------------------------
-        elif line.startswith(':t'):
+        elif line.startswith(':t') or line.startswith(':type'):
             try:
                 at = aparse(line[2:])
                 print type(at).__name__
@@ -116,6 +136,7 @@ def main():
 
         #-----------------------------------------------
         elif line.startswith(':help'):
+            print help
             pass
 
         #-----------------------------------------------

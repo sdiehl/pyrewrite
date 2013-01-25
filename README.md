@@ -3,6 +3,8 @@ pyrewrite
 
 Pyrewrite aims to be a micro term rewrite library written in pure Python.
 
+Pyrewrite has no dependencies other than the Python standard library.
+
 Usage
 -----
 
