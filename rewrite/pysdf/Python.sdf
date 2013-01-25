@@ -1,0 +1,312 @@
+module Python
+
+%% http://docs.python.org/release/3.2.3/reference/grammar.html
+%%
+%% hand-written c implementation:
+%%   http://svn.python.org/projects/python/trunk/Modules/parsermodule.c
+exports
+
+%% # Grammar for Python
+ 
+%% # Note:  Changing the grammar specified in this file will most likely
+%% #        require corresponding changes in the parser module
+%% #        (../Modules/parsermodule.c).  If you can't make the changes to
+%% #        that module yourself, please co-ordinate the required changes
+%% #        with someone who can; ask around on python-dev for help.  Fred
+%% #        Drake <fdrake@acm.org> will probably be listening there.
+ 
+%% # NOTE WELL: You should also follow all the steps listed in PEP 306,
+%% # "How to Change Python's Grammar"
+ 
+%% # Start symbols for the grammar:
+%% #       single_input is a single interactive statement;
+%% #       file_input is a module or sequence of commands read from an input file;
+%% #       eval_input is the input for the eval() and input() functions.
+%% # NB: compoundStmt in single_input is followed by extra NEWLINE!
+
+context-free start-symbols
+  FileInput
+
+context-free syntax
+  -> NEWLINE
+  
+  Stmt -> FileLine
+  FileLine* -> FileInput {layout("all(x,1,1.first.col == x.first.col)")}
+  
+%% decorator: '@' dotted_name [ '(' [arglist] ')' ] NEWLINE
+%% decorators: decorator+
+%% decorated: decorators (classdef | funcdef)
+  "def" Name Parameters ResSpec? ":" SimpleStmt -> Funcdef {cons("Funcdef"),
+    layout("1.last.line == 2.first.line && 2.last.line == 3.first.line && 3.last.line == 4.first.line && 4.last.line == 5.first.line && 5.first.line == 6.first.line")}
+  "def" Name Parameters ResSpec? ":" Suite -> Funcdef {cons("Funcdef"),
+    layout("1.last.line == 2.first.line && 2.last.line == 3.first.line && 3.last.line == 4.first.line && 4.last.line == 5.first.line && 5.first.line < 6.first.line && 1.first.col < 6.first.col")}
+  
+  "->" Test -> ResSpec
+  
+  "(" Typedargslist? ")" -> Parameters {ignore-layout}
+  (Tfpdef ("=" Test)? ("," Tfpdef ("=" Test)?)* (","
+        ("*" (Tfpdef)? ("," Tfpdef ("=" Test)?)* ("," "**" Tfpdef)? | "**" Tfpdef)?)?
+      |  "*" (Tfpdef)? ("," Tfpdef ("=" Test)?)* ("," "**" Tfpdef)? | "**" Tfpdef) -> Typedargslist
+  Name -> Tfpdef
+  Name ":" Test -> Tfpdef
+ 
+  Vfpdef ("=" Test)? ("," Vfpdef ("=" Test)?)* (","
+        ("*" (Vfpdef)? ("," Vfpdef ("=" Test)?)* ("," "**" Vfpdef)? | "**" Vfpdef)?)?
+      |  "*" (Vfpdef)? ("," Vfpdef ("=" Test)?)* ("," "**" Vfpdef)? | "**" Vfpdef -> Varargslist
+  Name -> Vfpdef
+ 
+  SimpleStmt -> Stmt
+  CompoundStmt -> Stmt
+
+  {SmallStmt ";"}+ -> SimpleStmt {cons("SimpleStmt")}
+  {SmallStmt ";"}+ ";" -> SimpleStmt {cons("SimpleStmt")}
+
+  ExprStmt | DelStmt | PassStmt | FlowStmt | ImportStmt | GlobalStmt | NonlocalStmt | AssertStmt -> SmallStmt
+    {layout("1.first.line == 1.last.line")}
+
+  TestlistStarExpr Augassign YieldExpr -> ExprStmt {cons("AssignAugYieldStmt")}
+  TestlistStarExpr Augassign Testlist -> ExprStmt {cons("AssignAugTestlistStmt")}
+  TestlistStarExpr Assign+ -> ExprStmt {cons("AssignEqStmt")}
+  TestlistStarExpr -> ExprStmt
+
+
+  "=" YieldExpr -> Assign {cons("AssignYield")}
+  "=" TestlistStarExpr -> Assign {cons("AssignTestlist")}
+
+  Test -> TestStarExpr
+  StarExpr -> TestStarExpr
+  {TestStarExpr ";"}+ -> TestlistStarExpr {cons("TestlistStarExpr")}
+  {TestStarExpr ";"}+ "," -> TestlistStarExpr {cons("TestlistStarExpr")}
+
+%% # For normal assignments, additional restrictions enforced by the interpreter
+  "del" Exprlist -> DelStmt {cons("DelStmt")}
+  "pass" -> PassStmt {cons("PassStmt")}
+  BreakStmt | ContinueStmt | ReturnStmt | RaiseStmt | YieldStmt -> FlowStmt
+  
+  "break" -> BreakStmt {cons("BreakStmt")}
+  "continue" -> ContinueStmt {cons("ContinueStmt")}
+  "return" Testlist? -> ReturnStmt {cons("ReturnStmt")}
+  YieldExpr -> YieldStmt {cons("YieldStmt")}
+  "raise" (Test ("from" Test)?)? -> RaiseStmt {cons("RaiseStmt")}
+  
+context-free syntax %% import stuff
+  ImportName | ImportFrom -> ImportStmt {cons("ImportStmt")}
+  "import" DottedAsNames -> ImportName {cons("ImportName")}
+
+%% # note below: the ("." | "...") is necessary because "..." is tokenized as ELLIPSIS
+%% import_from: ("from" (("." | "...")* dottedName | ("." | "...")+)
+%%               "import" ("*" | "(" importAsNames ")" | importAsNames))
+   "from" ("."* DottedName | "."+) "import" ("*" | "(" ImportAsNames ")" | ImportAsNames) -> ImportFrom {cons("ImportFrom")}
+  Name -> ImportAsName {cons("ImportAsName1")}
+  Name "as" Name -> ImportAsName {cons("ImportAsName2")}
+  DottedName -> DottedAsName {cons("DottedAsName1")}
+  DottedName "as" Name -> DottedAsName {cons("DottedAsName2")}
+  {ImportAsName ","}+ -> ImportAsNames {cons("ImportAsNames")}
+  {ImportAsName ","}+ "," -> ImportAsNames {cons("ImportAsNames")}
+  {DottedAsName ","}+ -> DottedAsNames {cons("DottedAsNames")}
+  {Name "."}+ -> DottedName {cons("DottedName")}
+  
+context-free syntax
+  "global" {Name ","}+ -> GlobalStmt {cons("GlobalStmt")}
+  "nonlocal" {Name ","}+ -> NonlocalStmt {cons("NonlocalStmt")}
+  "assert" Test -> AssertStmt {cons("AssertStmt1")}
+  "assert" Test "," Test -> AssertStmt {cons("AssertStmt2")}
+
+
+context-free syntax %% compound stmts
+
+  IfStmt | WhileStmt | ForStmt | TryStmt | WithStmt | Funcdef | Classdef -> CompoundStmt
+  %% Decorated -> CompoundStmt
+
+  "if" Test ":" SimpleStmt Elif* Else? -> IfStmt {cons("IfStmt"), 
+    layout("1.last.line == 2.first.line && 2.last.line == 3.first.line && 3.last.line == 4.first.line && all(x,5,1.first.col==x.first.col) && 1.first.col == 6.first.col")}
+  "if" Test ":" Suite Elif* Else? -> IfStmt {cons("IfStmt"), 
+    layout("1.last.line == 2.first.line && 2.last.line == 3.first.line && 3.last.line < 4.first.line && 1.first.col < 4.first.col && all(x,5,1.first.col==x.first.col) && 1.first.col == 6.first.col")}
+  
+  "elif" Test ":" SimpleStmt -> Elif {cons("Elif"),
+    layout("1.last.line == 2.first.line && 2.last.line == 3.first.line && 3.last.line == 4.first.line")}
+  "elif" Test ":" Suite -> Elif {cons("Elif"), 
+    layout("1.last.line == 2.first.line && 2.last.line == 3.first.line && 3.last.line < 4.first.line && 1.first.col < 4.first.col")}
+  "else" ":" SimpleStmt -> Else {cons("Else"),
+    layout("1.last.line == 2.first.line && 2.last.line == 3.first.line")}
+  "else" ":" Suite -> Else {cons("Else"), layout("1.first.col < 4.first.col"),
+    layout("1.last.line == 2.first.line && 2.last.line < 3.first.line && 1.first.col < 3.first.col")}
+  
+  "while" Test ":" SimpleStmt Else? -> WhileStmt {cons("WhileStmt"), layout("1.first.col == 5.first.col")}
+  "while" Test ":" NEWLINE Suite Else? -> WhileStmt {cons("WhileStmt"), 
+    layout("1.first.col < 5.first.col && 1.first.col == 6.first.col")}
+  
+  "for" Exprlist "in" Testlist ":" SimpleStmt Else? -> ForStmt {cons("ForStmt"), layout("1.first.col == 8.first.col")} 
+  "for" Exprlist "in" Testlist ":" NEWLINE Suite Else? -> ForStmt {cons("ForStmt"),
+    layout("1.first.col < 7.first.col && 1.first.col == 8.first.col")} 
+  
+  "try" ":" SimpleStmt Finally? -> TryStmt {cons("TryFinallyStmt"), layout("1.first.col == 4.first.col")}
+  "try" ":" NEWLINE Suite Finally? -> TryStmt {cons("TryFinallyStmt"), 
+    layout("1.first.col < 4.first.col && 1.first.col == 5.first.col")}
+  "try" ":" SimpleStmt Except+ Else? Finally? -> TryStmt {cons("TryExceptStmt"), 
+    layout("all(x,4,1.first.col==x.first.col) && 1.first.col == 5.first.col && 1.first.col == 7.first.col")}
+  "try" ":" NEWLINE Suite Except+ Else? Finally? -> TryStmt {cons("TryExceptStmt"), 
+    layout("1.first.col < 4.first.col && all(x,5,1.first.col==x.first.col) && 1.first.col == 6.first.col && 1.first.col == 7.first.col")}
+  
+  "finally" ":" SimpleStmt -> Finally {cons("Finally")}          
+  "finally" ":" NEWLINE Suite -> Finally {cons("Finally"), layout("1.first.col < 4.first.col")}          
+  ExceptClause ":" SimpleStmt -> Except {cons("Except")}
+  ExceptClause ":" NEWLINE Suite -> Except {cons("Except"), layout("1.first.col < 4.first.col")}
+  "except" -> ExceptClause {cons("Except0")}
+  "except" Test -> ExceptClause {cons("Except1")}
+  "except" Test "as" Name -> ExceptClause {cons("Except2")}
+  
+  "with" {WithItem ","}+ ":" SimpleStmt -> WithStmt {cons("WithStmt")}
+  "with" {WithItem ","}+ ":" NEWLINE Suite -> WithStmt {cons("WithStmt"), layout("1.first.col < 5.first.col")}
+  Test -> WithItem {cons("WithItem")}
+  Test "as" Expr -> WithItem {cons("WithItemAs")}
+  
+%% # NB compile.c makes sure that the default except clause is last
+
+  Stmt+ -> Suite {cons("StmtListSuite"), layout("all(x, 1, 1.first.col == x.first.col)")}
+ 
+ 
+  OrTest -> Test {layout("1.first.line == 1.last.line")}
+  "---" -> OrTest
+  OrTest "if" OrTest "else" Test -> Test {cons("OrIfTest")} 
+  Lambdef -> Test {cons("LambDefTest")}
+  OrTest | LambdefNocond -> TestNocond
+  "lambda" Varargslist? ":" Test -> Lambdef {cons("Lambdef")}
+  "lambda" Varargslist? ":" TestNocond -> LambdefNocond
+  {AndTest "or"}+ -> OrTest {cons("OrTest")}
+  {NotTest "and"}+ -> AndTest {cons("AndTest")}
+  "not" NotTest -> NotTest {cons("NotTest")}
+  Expr -> NotTest
+
+  "*" Expr -> StarExpr {cons("StarExpr")}
+  Expr -> ExprStarExpr
+  StarExpr -> ExprStarExpr
+  "yield" Testlist? -> YieldExpr {cons("YieldExpr")}
+  
+context-free priorities
+    Atom Trailer* -> Expr {cons("TrailerExpr")} 
+  > Expr "**" Expr -> Expr {cons("PowerExpr")}
+  >
+  { right:
+    Expr "*" Expr -> Expr {cons("MultExpr"), right}
+    Expr "//" Expr -> Expr {cons("Div2Expr"), right}
+    Expr "/" Expr -> Expr {cons("DivExpr"), right}
+    Expr "%" Expr -> Expr {cons("DivExpr"), right}
+  }
+  >
+  { right:
+    Expr "+" Expr -> Expr {cons("PlusExpr"), right}
+    Expr "-" Expr -> Expr {cons("MinusExpr"), right}
+  }
+  > 
+  {right: 
+    Expr "<<" Expr -> Expr {cons("ShiftLExpr"), right}
+    Expr ">>" Expr -> Expr {cons("ShiftRExpr"), right}
+  }
+  > Expr "&" Expr -> Expr {cons("AndExpr"), right}
+  > Expr "^" Expr -> Expr {cons("XorExpr"), right}
+  > Expr "|" Expr -> Expr {cons("OrExpr"), right}
+  > Expr CompOp Expr -> Expr {cons("ComparisonExpr"), right}
+
+context-free syntax
+  Name -> Atom {cons("Name")}
+  Number -> Atom {cons("Number")}
+  String -> Atom {cons("String")}
+  "..." -> Atom {cons("Ellipsis")}
+  "None" -> Atom {cons("None")}
+  "True" -> Atom {cons("True")}
+  "False" -> Atom {cons("False")}
+  
+  "(" ")" -> Atom {cons("EmptyParen")}
+  "(" YieldExpr ")" -> Atom {cons("YieldParen"), ignore-layout}
+  "(" TestlistComp ")" -> Atom {cons("TestlistCompParen"), ignore-layout}
+  "[" TestlistComp "]" -> Atom {cons("TestlistCompParenQuestion"), ignore-layout}
+  "{" "}" -> Atom {cons("EmptyBlock")}
+  "{" DictSetmaker "}" -> Atom {cons("DictSetmakerBlock"), ignore-layout}
+
+  TestStarExpr CompFor -> TestlistComp {cons("TestlistComp1")}
+  {TestStarExpr ","}+ -> TestlistComp {cons("TestlistComp2")} 
+  {TestStarExpr ","}+ "," -> TestlistComp {cons("TestlistComp2")}
+
+  "(" Arglist? ")" -> Trailer {cons("ArglistTrailer"), ignore-layout}
+  "[" Subscriptlist "]" -> Trailer {cons("SubscriptlistTrailer"), ignore-layout}
+  "." Name -> Trailer {cons("FieldTrailer")}
+  
+  {Subscript ","}+ -> Subscriptlist
+  {Subscript ","}+ "," -> Subscriptlist
+  
+  Test -> Subscript
+  Test? ":" Test? Sliceop? -> Subscript {cons("Subscript")}
+  ":" Test? -> Sliceop {cons("Sliceop")}
+
+  {ExprStarExpr ","}+ -> Exprlist
+  {ExprStarExpr ","}+ "," -> Exprlist
+
+  {Test ","}+ -> Testlist
+  {Test ","}+ "," -> Testlist
+  
+  Test CompFor -> DictSetmaker {cons("DictSetmaker1")}
+  {Test ","}+ -> DictSetmaker {cons("DictSetmaker2")}
+  {Test ","}+ "," -> DictSetmaker {cons("DictSetmaker3")}
+  Test ":" Test CompFor -> DictSetmaker {cons("DictSetmaker4")}
+  Test ":" Test ("," Test ":" Test)* -> DictSetmaker {cons("DictSetmaker5")}
+  Test ":" Test ("," Test ":" Test)* "," -> DictSetmaker {cons("DictSetmaker6")}
+
+  "class" Name ArglistP? ":" NEWLINE Suite -> Classdef {cons("Classdef"), layout("1.first.col < 6.first.col")}
+  "(" Arglist? ")" -> ArglistP {bracket, ignore-layout}
+  
+  {Argument ","}+ -> Arglist {cons("Arglist")}
+  {Argument ","}+ "," -> Arglist {cons("Arglist")}
+  (Argument ',')* '**' Test -> Arglist {cons("Arglist1")}
+  (Argument ',')* '*' Test (',' Argument)* -> Arglist {cons("Arglist2")}
+  (Argument ',')* '*' Test (',' Argument)* "," "**" Test -> Arglist {cons("Arglist3")}
+  
+%% # The reason that keywords are Test nodes instead of NAME is that using NAME
+%% # results in an ambiguity. ast.c makes sure it"s a NAME.
+  Test -> Argument {cons("Argument")}
+  Test CompFor -> Argument {cons("ArgumentFor")}
+  Name "=" Test -> Argument {cons("ArgumentAssign")}
+
+  CompFor | CompIf -> CompIter
+  "for" Exprlist "in" OrTest -> CompFor {cons("CompFor")}
+  "for" Exprlist "in" OrTest CompIter -> CompFor {cons("CompForIter")}
+  "if" TestNocond -> CompIf {cons("CompIf")}
+  "if" TestNocond CompIter -> CompIf {cons("CompIfIter")}
+
+  
+lexical syntax
+  "+=" | "-=" | "*=" | "/=" | "%=" | "&=" | "|=" | "^=" |
+             "<<=" | ">>=" | "**=" | "//=" -> Augassign
+
+%% # <> isn"t actually a valid comparison operator in Python. It"s here for the
+%% # sake of a __future__ import described in PEP 401
+ "<"|">"|"=="|">="|"<="|"<>"|"!="|"in"|("not" LAYOUT "in")|"is"|("is" LAYOUT "not") -> CompOp
+
+  [a-zA-Z\_][a-zA-Z0-9\_]* -> Name
+  
+  "'" ShortStringItem* "'"  -> String
+  "\"" ShortStringItem* "\""  -> String
+  ~[\n\r\"\'\\] -> ShortStringItem
+  "\\" ~[\n\r] -> ShortStringItem
+  
+  "0" | [1-9][0-9]* -> DecimalInteger
+  "0" [0-7]+ -> OctInteger
+  "0" ("x" | "X") [0-9a-fA-F]+ -> HexInteger
+    
+  DecimalInteger | OctInteger | HexInteger -> Number  
+  
+  [\n\r\ \t] -> LAYOUT
+  [\#] ~[\n\r]* [\n\r] -> LAYOUT
+
+lexical restrictions
+  Name -/- [a-zA-Z0-9\_]
+  DecimalInteger -/- [0-9]
+  OctInteger -/- [0-7]
+  HexInteger -/- [0-9a-fA-F]
+
+context-free restrictions
+	LAYOUT? -/- [\ \t\n\r] | [\#].~[\n\r]
+  
+lexical syntax
+  "if" | "elif" | "else" | "while" | "for" | "def" | "return" | "pass" | "yield"
+  | "break" | "continue" | "raise" -> Name {reject}
