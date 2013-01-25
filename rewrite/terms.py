@@ -28,10 +28,7 @@ class ATerm(object):
             raise ValueError()
 
     def __ne__(self, other):
-        if isinstance(other, ATerm):
-            return self.term != other.term
-        else:
-            raise ValueError()
+        return not self == other
 
     def __repr__(self):
         return str(self)
@@ -45,6 +42,15 @@ class AAppl(object):
         assert isinstance(spine, ATerm)
         self.spine = spine
         self.args = args
+
+    def __eq__(self, other):
+        if isinstance(other, AAppl):
+            return self.spine == other.spine and self.args == other.args
+        else:
+            raise ValueError()
+
+    def __ne__(self, other):
+        return not self == other
 
     def __str__(self):
         return str(self.spine) + arepr(self.args, '(', ')')
