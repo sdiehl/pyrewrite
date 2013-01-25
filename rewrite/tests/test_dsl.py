@@ -27,22 +27,22 @@ def test_simple_module():
 
 #------------------------------------------------------------------------
 
-#patterns = """
-#EvalIf :
-#    If(False(), e1, e2) -> e2
-#
-#EvalIf :
-#    If(True(), e1, e2) -> e1
-#
-#PropIf :
-#    If(B,@F(X),@F(Y)) -> F(If(B,X,Y))
-#"""
-#
-#def test_patterns_parse():
-#    dslparse(patterns)
-#
-#def test_patterns_module():
-#    module(patterns)
+patterns = """
+EvalIf :
+    If(False(), e1, e2) -> e2
+
+EvalIf :
+    If(True(), e1, e2) -> e1
+
+PropIf :
+    If(B,@F(X),@F(Y)) -> F(If(B,X,Y))
+"""
+
+def test_patterns_parse():
+    dslparse(patterns)
+
+def test_patterns_module():
+    module(patterns)
 
 #------------------------------------------------------------------------
 

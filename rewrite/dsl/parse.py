@@ -47,7 +47,7 @@ combinators = [
 ]
 
 tokens = (
-    'NAME', 'INT', 'DOUBLE', 'ARROW', 'STRING', 'INCOMB', 'AS'
+    'NAME', 'INT', 'DOUBLE', 'ARROW', 'STRING', 'INCOMB', 'AS',
     #, 'CLAUSE'
 )
 
@@ -70,7 +70,8 @@ t_ignore = '\x20\x09\x0A\x0D'
 
 # dynamically generate the regex for the Combinator token from
 # the keys of the combinator dictionary
-t_INCOMB = '|'.join(map(re.escape, infix_combinators))
+t_INCOMB  = '|'.join(map(re.escape, infix_combinators))
+#t_PRECOMB = '|'.join(map(re.escape, prefix_combinators))
 
 unquote = re.compile('"(?:[^\']*)\'|"([^"]*)"')
 
@@ -107,7 +108,7 @@ def t_STRING(t):
     return t
 
 #def t_CLAUSE(t):
-    #r'not|rec'
+    #r'where'
     #return t
 
 def t_COMMENT(t):
@@ -203,7 +204,17 @@ def p_strategy_value3(p):
 
 #--------------------------------
 
-def p_expr(p):
+# tagged as-patterns ( ala Haskell )
+def p_expr1(p):
+    '''expr : term AS value'''
+    p[0] = ast.AsNode(p[1], p[3])
+
+# anonymous as-patterns ( ala Pure )
+def p_expr2(p):
+    '''expr : AS appl'''
+    p[0] = ast.AsNode(None, p[2])
+
+def p_expr3(p):
     '''expr : value'''
     p[0] = p[1]
 
