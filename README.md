@@ -101,6 +101,12 @@ eval = bottomup(repeat(Eval))
 
 **Strategies**
 
+The application of rules can be a *Normalization* if it is the
+exhaustive application of rules. The ``eval`` rule above is normalizing.
+
+A *normal form* for an expression is a expression where no
+subterm can be rewritten.
+
 ```
 all(s)     Apply parameter strategy s to each direct subterm
 rec(s)
@@ -122,6 +128,23 @@ innermost(s) = bottomup(try(s; innermost(s)))
 
 **Confluence**
 
+A term rewrite system need not terminate, for example the following is
+a *non-terminating* rewrite system that results in an infinite rewrite
+loop:
+
+```
+foo : A() -> B() 
+foo : B() -> A()
+
+rule : repeat(foo)
+```
+
+A term rewrite system is said to *confluent* when given multiple
+possibilities of rule application, all permutations of application
+lead to the same result regardless of order. The general problem
+of determining whether a term-rewrite system is confluent is very
+difficult.
+
 **As-Patterns**
 
 Examples
@@ -134,18 +157,11 @@ Examples
 **Lambda**
 
 The simple lambda calculus consists of a set of expressions
-called *Expr*:
+*Sym* and *Expr* with the following constructions:
 
 ```haskell
-Expr = Var | App | Lam
-```
-
-With the following constructions:
-
-```haskell
-Var (x : Sym)
-App (e0 : Expr) (e1 : Expr)
-Lam (x : Sym) (e0 : Expr)
+Sym = String
+Expr = Var Sym | App Expr Expr | Lam Sym Expr
 ```
 
 **Python**
