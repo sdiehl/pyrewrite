@@ -308,13 +308,6 @@ def p_empty(t):
 
 #--------------------------------
 
-def find_column(input,token):
-    last_cr = input.rfind('\n',0,token.lexpos)
-    if last_cr < 0:
-	last_cr = 0
-    column = (token.lexpos - last_cr) + 1
-    return column
-
 def p_error(p):
     line = p.lexer.lexdata.split('\n')[p.lineno-1]
     offset = sum(map(len, p.lexer.lexdata.split('\n')[0:p.lineno-1]))
@@ -334,14 +327,14 @@ def p_error(p):
 # DSL Parser
 #------------------------------------------------------------------------
 
-def load_parser(debug=True):
+def load_parser(debug=False):
     if debug:
         from ply import lex, yacc
         path = os.path.abspath(__file__)
         dir_path = os.path.dirname(path)
-        lexer = lex.lex(lextab="_dlex", outputdir=dir_path, optimize=0)
+        lexer = lex.lex(lextab="_dlex", outputdir=dir_path, optimize=1)
         parser = yacc.yacc(tabmodule='_dyacc',outputdir=dir_path,
-                write_tables=0, debug=0, optimize=0)
+                write_tables=1, debug=0, optimize=0)
         return partial(parser.parse, lexer=lexer)
     else:
         module = sys.modules[__name__]
@@ -352,5 +345,5 @@ def load_parser(debug=True):
         return partial(parser.parse, lexer=lexer)
 
 def dslparse(pattern):
-    parse = load_parser(debug=True)
+    parse = load_parser()
     return parse(pattern)
