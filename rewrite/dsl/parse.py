@@ -66,7 +66,7 @@ literals = [
 ]
 
 t_NAME   = r'[a-zA-Z_][a-zA-Z0-9_]*'
-t_ignore = '\x20\x09\x0A\x0D'
+t_ignore = '\x20\x09\x0D'
 
 # dynamically generate the regex for the Combinator token from
 # the keys of the combinator dictionary
@@ -75,9 +75,9 @@ t_INCOMB  = '|'.join(map(re.escape, infix_combinators))
 
 unquote = re.compile('"(?:[^\']*)\'|"([^"]*)"')
 
-def t_NEWLINE(t):
-   r'\n'
-   t.lexer.lineno += 1
+def t_newline(t):
+    r'\n+'
+    t.lexer.lineno += len(t.value)
 
 def t_DOUBLE(t):
     r'\d+\.(\d+)?'
@@ -137,7 +137,7 @@ class RewriteSyntaxError(Exception):
         return syntax_error.format(
             filename = self.filename,
             lineno   = self.lineno,
-            line     = self.text.split('\n')[self.lineno],
+            line     = self.text,
             pointer  = ' '*self.col_offset + '^',
             msg      = self.msg
         )
@@ -308,13 +308,24 @@ def p_empty(t):
 
 #--------------------------------
 
+def find_column(input,token):
+    last_cr = input.rfind('\n',0,token.lexpos)
+    if last_cr < 0:
+	last_cr = 0
+    column = (token.lexpos - last_cr) + 1
+    return column
+
 def p_error(p):
+    line = p.lexer.lexdata.split('\n')[p.lineno-1]
+    offset = sum(map(len, p.lexer.lexdata.split('\n')[0:p.lineno-1]))
+    column = p.lexpos - offset
+
     if p:
         raise RewriteSyntaxError(
             p.lineno,
-            p.lexpos,
+            column,
             '<stdin>',
-            p.lexer.lexdata,
+            line,
         )
     else:
         raise SyntaxError("Syntax error at EOF")
@@ -323,14 +334,14 @@ def p_error(p):
 # DSL Parser
 #------------------------------------------------------------------------
 
-def load_parser(debug=False):
+def load_parser(debug=True):
     if debug:
         from ply import lex, yacc
         path = os.path.abspath(__file__)
         dir_path = os.path.dirname(path)
-        lexer = lex.lex(lextab="_dlex", outputdir=dir_path, optimize=1)
+        lexer = lex.lex(lextab="_dlex", outputdir=dir_path, optimize=0)
         parser = yacc.yacc(tabmodule='_dyacc',outputdir=dir_path,
-                write_tables=1, debug=0, optimize=0)
+                write_tables=0, debug=0, optimize=0)
         return partial(parser.parse, lexer=lexer)
     else:
         module = sys.modules[__name__]
@@ -341,5 +352,5 @@ def load_parser(debug=False):
         return partial(parser.parse, lexer=lexer)
 
 def dslparse(pattern):
-    parse = load_parser()
+    parse = load_parser(debug=True)
     return parse(pattern)

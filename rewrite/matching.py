@@ -162,7 +162,6 @@ def freev(a):
 # Rewriting
 #------------------------------------------------------------------------
 
-# walk the tree, push variables on the stack
 def unfold(lpat, p, s):
     bindings = {}
     li = iter(lpat)
@@ -183,15 +182,12 @@ def unfold(lpat, p, s):
                 bindings[bind] = capture
                 yield (bind, capture)
 
-# walk the tree, pop variables off the stack
 def fold(rpat, subst, cap):
     stack = dict(cap)
 
-    # resolve the symbols from the pattern in the matched context
     vals = [stack[s] for s in rpat]
 
     return init(aterm_splice(subst,vals))
 
-# rewriter
 def hylo(ana, cata, s):
     return cata(ana(s))

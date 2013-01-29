@@ -5,7 +5,7 @@ import readline
 import traceback
 from functools import partial
 
-from rewrite import aparse, match
+from rewrite import aparse #, match
 from rewrite.matching import freev
 from toplevel import module, NoMatch
 
