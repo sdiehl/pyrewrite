@@ -12,6 +12,13 @@ placeholders = {
     'list'        : alist
 }
 
+class NoMatch(Exception):
+    pass
+
+#------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------
+
 def init(xs):
     for x in xs:
         return x
@@ -44,7 +51,6 @@ def aterm_zip(a, b):
                     yield aj
         else:
             yield False, None
-
 
     elif isinstance(a, aplaceholder):
         # <appl(...)>
@@ -81,15 +87,15 @@ def aterm_splice(a, elts):
     elif isinstance(a, aplaceholder):
         # <appl(...)>
         if a.args:
-            spine = elts.pop()
+            spine = elts.pop(0)
             yield aappl(spine, [init(aterm_splice(ai,elts)) for ai in a.args])
         # <term>
         else:
-            yield elts.pop()
+            yield elts.pop(0)
     else:
         raise NotImplementedError
 
-# TODO: move over to dict, return tuple ('var', 'binder')
+# TODO: warn on nested as pattern
 def free(a):
     if isinstance(a, (aint, areal, astr)):
         pass
@@ -100,19 +106,23 @@ def free(a):
                 yield aj
 
     elif isinstance(a, aterm):
-        yield a.term
+        yield (a, a.term, aterm)
 
     elif isinstance(a, (alist,atupl)):
         for ai in a.args:
             for aj in free(ai):
                 yield aj
 
+    # ----
+
     elif isinstance(a, ast.AsNode):
-        if a.tag:
-            yield (a.tag, a.pattern)
+        if a.tag is not None:
+            yield (a.pattern, a.tag, type(a.pattern))
         else:
             if isinstance(a.pattern, aappl):
-                yield a.pattern.spine
+                # detached
+                head = a.pattern.spine
+                yield (head, head.term, aterm)
                 for ai in a.pattern.args:
                     for aj in free(ai):
                         yield aj
@@ -137,10 +147,61 @@ def freev(a):
     elif isinstance(a, aterm):
         return aplaceholder('term', None)
 
+    # ----
+
+    elif isinstance(a, ast.AsNode):
+        # TODO: need to define traversal
+        if a.tag is not None:
+            return aplaceholder('term', None)
+        else:
+            return aplaceholder('appl', [freev(ai) for ai in a.pattern.args])
+
     else:
         raise NotImplementedError
 
+#------------------------------------------------------------------------
+# Rewriting
+#------------------------------------------------------------------------
 
+# walk the tree, push variables on the stack
+def unfold(lpat, p, s):
+    bindings = {}
+    li = iter(lpat)
+
+    for matches, capture in aterm_zip(p,s):
+        if not matches:
+            raise NoMatch()
+        elif matches and capture:
+            bind = next(li)
+            # check non-linear or nested patterns
+            if bind in bindings:
+                if capture == bindings[bind]:
+                    yield (bind, capture)
+                else:
+                    raise NoMatch()
+            # flat patterns
+            else:
+                bindings[bind] = capture
+                yield (bind, capture)
+
+# walk the tree, pop variables off the stack
+def fold(rpat, subst, cap):
+    stack = dict(cap)
+
+    # resolve the symbols from the pattern in the matched context
+    vals = [stack[s] for s in rpat]
+
+    return init(aterm_splice(subst,vals))
+
+# rewriter
+def hylo(ana, cata, s):
+    return cata(ana(s))
+
+#------------------------------------------------------------------------
+# Inject
+#------------------------------------------------------------------------
+
+# fold in the pattern results in binding
 def match(pattern, subject, *captures):
     # TODO: migrate to dict to match stratego bindings
     captures = []

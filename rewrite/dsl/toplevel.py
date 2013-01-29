@@ -1,14 +1,18 @@
 from functools import partial
 
-from rewrite import matching
-from rewrite.matching import free, freev
+from rewrite.matching import free, freev, fold, unfold, hylo, NoMatch
 import rewrite.astnodes as ast
 
 from parse import dslparse
 import combinators as comb
 
-def nameof(cls):
-    return cls.__class__.__name__
+def nameof(o):
+    if isinstance(o, RuleBlock):
+        return o.label
+    if isinstance(o, Strategy):
+        return o.label
+    else:
+        return o.__class__.__name__
 
 combinators = {
     'fail'      : comb.fail,
@@ -29,24 +33,22 @@ combinators = {
 # Exceptions
 #------------------------------------------------------------------------
 
-class NoMatch(Exception):
-    pass
-
 #------------------------------------------------------------------------
 # Strategies
 #------------------------------------------------------------------------
 
 class Strategy(object):
 
-    def __init__(self, combinator, expr):
-        self.subrules = [a.rewrite for a in expr]
-        self.names = [nameof(a) for a in expr]
+    def __init__(self, combinator, expr, label):
+        self.subrules = [a for a in expr]
 
         try:
             self.combinator = combinator(*self.subrules)
         except TypeError:
             raise TypeError, 'Wrong number of arguments to combinator: %s'\
                 % str(combinator)
+
+        self.label = label or repr(self)
 
     def __call__(self, o):
         return self.combinator(o)
@@ -55,54 +57,31 @@ class Strategy(object):
 
     def __repr__(self):
         return '%s(%s)' % (
-            self.combinator.__class__.__name__,
-            self.names
+            nameof(self.combinator),
+            ','.join(map(nameof, self.subrules))
         )
 
 class Rule(object):
-    def __init__(self, symtab, lpat, rpat, matcher, builder):
-        self.matcher = matcher
-        self.symtab = symtab
-        self.builder = builder
+    def __init__(self, lpat, rpat, left, right, rr):
         self.lpat = lpat
         self.rpat = rpat
+        self.left = left
+        self.right = right
+        self.rr = rr
 
-    def rewrite(self, pattern):
-        # This is transliteration of some OCaml code
-        b = {} # bindings
+    def rewrite(self, subject):
+        return self.rr(subject)
 
-        matches, captured = self.matcher(pattern)
-        if matches:
-
-            # Short circuit for trivial rewrites
-            if len(self.rpat) == 0 and len(self.lpat) == 0:
-                return self.builder([])
-
-            # Pattern match and ensure binding equality constraint
-            for i,el in enumerate(captured):
-                vi = self.lpat[i]
-                if vi in b:
-                    if b[vi] != el:
-                        raise NoMatch()
-                    else:
-                        pass
-                else:
-                    b[self.lpat[i]] = el
-            values = [b[j] for j in self.rpat]
-            # TODO; prepend
-            return self.builder(reversed(values))
-        else:
-            raise NoMatch()
-
-    def __call__(self, pattern):
-        return self.rewrite(pattern)
+    __call__ = rewrite
 
     def __repr__(self):
-        return '%r -> %r' % (self.lpat, self.rpat)
+        return '%r => %r ::\n\t %r -> %r' % \
+            (self.left, self.right, self.lpat, self.rpat)
 
 class RuleBlock(object):
-    def __init__(self, rules=None):
+    def __init__(self, rules=None, label=None):
         self.rules = rules or []
+        self.label = label
 
     def add(self, rule):
         self.rules.append(rule)
@@ -150,42 +129,42 @@ def build_strategy(label, env, comb, args):
                 rr = env[iarg.term]
                 sargs.append(rr)
 
-    return Strategy(comb, sargs)
+    return Strategy(comb, sargs, label)
 
-
-def build_rule(l, r):
-    i,j = 0, 0
-
+def build_rule(l, r, cons=None):
     lpat = []
     rpat = []
+    sym = set()
+    cons = cons or {}
 
-    symtab = {}
-
-    for v in free(l):
-        if v in symtab:
-            lpat.append(symtab[v])
+    for pat, bind, ty in free(l):
+        if bind in sym:
+            # TODO unify ty
+            lpat.append(bind)
         else:
-            symtab[v] = i
-            lpat.append(i)
-            i += 1
+            lpat.append(bind)
+            sym.add(bind)
 
-    for v in free(r):
-        if v in symtab:
-            rpat.append(symtab[v])
+    for pat, bind, ty in free(r):
+        if bind in sym:
+            rpat.append(bind)
         else:
-            raise Exception('Unbound variable: %s' % v)
+            raise Exception('Unbound variable: %s' % pat)
 
-    matcher = partial(matching.match, freev(l))
-    builder = partial(matching.build, freev(r))
+    left  = freev(l)
+    right = freev(r)
 
-    rr = Rule(symtab, lpat, rpat, matcher, builder)
-    return rr
+    ana  = partial(unfold, lpat, left)
+    cata = partial(fold, rpat, right)
+
+    rr = partial(hylo, ana, cata)
+    return Rule(lpat, rpat, left, right, rr)
 
 #------------------------------------------------------------------------
 # Module Constructions
 #------------------------------------------------------------------------
 
-def module(s, _env=None):
+def module(s, sorts=None, cons=None, _env=None):
     defs = dslparse(s)
 
     if _env:
@@ -198,12 +177,12 @@ def module(s, _env=None):
         if isinstance(df, ast.RuleNode):
 
             label, l, r = df
-            rr = build_rule(l, r)
+            rr = build_rule(l, r, cons)
 
             if label in env:
                 env[label].add(rr)
             else:
-                env[label] = RuleBlock([rr])
+                env[label] = RuleBlock([rr], label=label)
 
         elif isinstance(df, ast.StrategyNode):
             label, comb, args = df

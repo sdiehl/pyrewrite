@@ -157,7 +157,7 @@ def p_definitions2(p):
 #--------------------------------
 
 def p_rule(p):
-    '''rule : NAME ':' value ARROW value'''
+    '''rule : NAME ':' expr ARROW expr'''
     p[0] = ast.RuleNode(p[1],p[3],p[5])
 
 #--------------------------------
@@ -206,12 +206,12 @@ def p_strategy_value3(p):
 
 # tagged as-patterns ( ala Haskell )
 def p_expr1(p):
-    '''expr : term AS value'''
+    '''expr : NAME AS value'''
     p[0] = ast.AsNode(p[1], p[3])
 
 # anonymous as-patterns ( ala Pure )
 def p_expr2(p):
-    '''expr : AS appl'''
+    '''expr : AS expr'''
     p[0] = ast.AsNode(None, p[2])
 
 def p_expr3(p):
@@ -323,14 +323,14 @@ def p_error(p):
 # DSL Parser
 #------------------------------------------------------------------------
 
-def load_parser(debug=True):
+def load_parser(debug=False):
     if debug:
         from ply import lex, yacc
         path = os.path.abspath(__file__)
         dir_path = os.path.dirname(path)
-        lexer = lex.lex(lextab="_dlex", outputdir=dir_path, optimize=0)
+        lexer = lex.lex(lextab="_dlex", outputdir=dir_path, optimize=1)
         parser = yacc.yacc(tabmodule='_dyacc',outputdir=dir_path,
-                write_tables=0, debug=0, optimize=0)
+                write_tables=1, debug=0, optimize=0)
         return partial(parser.parse, lexer=lexer)
     else:
         module = sys.modules[__name__]
@@ -341,5 +341,5 @@ def load_parser(debug=True):
         return partial(parser.parse, lexer=lexer)
 
 def dslparse(pattern):
-    parse = load_parser(debug=True)
+    parse = load_parser()
     return parse(pattern)

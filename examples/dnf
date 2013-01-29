@@ -1,10 +1,10 @@
 E : Impl(x, y) -> Or(Not(x), y)
-E : Eq(x, y)   -> And(Impl(x, y), Impl(y, x))
+E : Eq(x, y) -> And(Impl(x, y), Impl(y, x))
 
 E : Not(Not(x)) -> x
 
 E : Not(And(x, y)) -> Or(Not(x), Not(y))
-E : Not(Or(x, y))  -> And(Not(x), Not(y))
+E : Not(Or(x, y)) -> And(Not(x), Not(y))
 
 E : And(Or(x, y), z) -> Or(And(x, z), And(y, z))
 E : And(z, Or(x, y)) -> Or(And(z, x), And(z, y))

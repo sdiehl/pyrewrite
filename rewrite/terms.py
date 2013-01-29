@@ -1,10 +1,3 @@
-import re
-from functools import partial
-from collections import namedtuple, OrderedDict
-
-import ply.lex as lex
-import ply.yacc as yacc
-
 #------------------------------------------------------------------------
 # Terms
 #------------------------------------------------------------------------
@@ -25,7 +18,7 @@ class ATerm(object):
         if isinstance(other, ATerm):
             return self.term == other.term
         else:
-            raise ValueError()
+            return False
 
     def __ne__(self, other):
         return not self == other
@@ -47,7 +40,7 @@ class AAppl(object):
         if isinstance(other, AAppl):
             return self.spine == other.spine and self.args == other.args
         else:
-            raise ValueError()
+            return False
 
     def __ne__(self, other):
         return not self == other
@@ -83,13 +76,10 @@ class AInt(object):
         if isinstance(other, AInt):
             return self.val == other.val
         else:
-            raise ValueError()
+            return False
 
     def __ne__(self, other):
-        if isinstance(other, AInt):
-            return self.val != other.val
-        else:
-            raise ValueError()
+        return not self == other
 
     def __repr__(self):
         return str(self)
@@ -100,6 +90,15 @@ class AReal(object):
 
     def __str__(self):
         return str(self.val)
+
+    def __eq__(self, other):
+        if isinstance(other, AReal):
+            return self.val == other.val
+        else:
+            return False
+
+    def __ne__(self, other):
+        return not self == other
 
     def __repr__(self):
         return str(self)
@@ -112,6 +111,15 @@ class AList(object):
     def __str__(self):
         return arepr(self.args, '[', ']')
 
+    def __eq__(self, other):
+        if isinstance(other, AList):
+            return self.args == other.args
+        else:
+            return False
+
+    def __ne__(self, other):
+        return not self == other
+
     def __repr__(self):
         return str(self)
 
@@ -119,6 +127,15 @@ class ATuple(object):
     def __init__(self, args):
         assert isinstance(args, list)
         self.args = args or []
+
+    def __eq__(self, other):
+        if isinstance(other, ATuple):
+            return self.args == other.args
+        else:
+            return False
+
+    def __ne__(self, other):
+        return not self == other
 
     def __str__(self):
         return arepr(self.args, '(', ')')

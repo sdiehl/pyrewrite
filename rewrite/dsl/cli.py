@@ -6,8 +6,12 @@ import traceback
 from functools import partial
 
 from rewrite import aparse, match
-from rewrite.matching import free, freev
+from rewrite.matching import freev
 from toplevel import module, NoMatch
+
+#------------------------------------------------------------------------
+# Toplevel
+#------------------------------------------------------------------------
 
 banner = """Pyrewrite
 ------------------------------------
@@ -43,6 +47,10 @@ def completer(mod, text, state):
 
 prelude = {}
 
+#------------------------------------------------------------------------
+# Main interpreter loop
+#------------------------------------------------------------------------
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('module', nargs='?', help='Module')
@@ -52,7 +60,7 @@ def main():
     # State
     mod = {}
     last = None
-    stack = []
+    bindings = {}
 
     if args.module:
         with open(args.module) as fd:
@@ -77,12 +85,14 @@ def main():
             at = aparse(line[1:])
             matcher = partial(match, freev(at))
             matched, localbind = matcher(last)
-            stack.extend(localbind)
 
-            if matched:
-                print stack
-            else:
-                print 'failed'
+            # TODO: Use dict
+            #bindings.update(localbind)
+
+            #if matched:
+            #    print bindings
+            #else:
+            #    print 'failed'
 
         #-----------------------------------------------
         elif line.startswith('!'):
@@ -113,8 +123,8 @@ def main():
 
         #-----------------------------------------------
         elif line.startswith(':bindings'):
-            if stack:
-                pprint.pprint(stack)
+            if bindings:
+                pprint.pprint(bindings)
             continue
 
         #-----------------------------------------------
@@ -142,7 +152,7 @@ def main():
 
         #-----------------------------------------------
         else:
-            stack = []
+            bindings = {}
             try:
                 last = aparse(line)
                 print last

@@ -1,6 +1,5 @@
-from rewrite.terms import AAppl
-
 from functools import wraps
+import rewrite.terms as terms
 
 #------------------------------------------------------------------------
 # Exceptions
@@ -26,14 +25,17 @@ def fix(f):
 def fail():
     raise STFail()
 
-def Choice(left=None, right=None):
-    @wraps(Choice)
-    def ap(t):
+class Choice(object):
+    def __init__(self, left=None, right=None):
+        self.left = left
+        self.right = right
+        assert left and right, 'Must provide two arguments to Choice'
+
+    def __call__(self, t):
         try:
-            return left(t)
+            return self.left(t)
         except STFail:
-            return right(t)
-    return ap
+            return self.right(t)
 
 class Debug(object):
     def __init__(self, s):
@@ -76,7 +78,7 @@ class All(object):
         self.s = s
 
     def __call__(self, o):
-        if isinstance(o, AAppl):
+        if isinstance(o, terms.AAppl):
             return AAppl(o.spine, map(self.s, o.args))
         else:
             return o

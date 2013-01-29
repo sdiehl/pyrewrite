@@ -5,6 +5,16 @@ Pyrewrite aims to be a micro term rewrite library written in pure Python.
 
 Pyrewrite has no dependencies other than the Python standard library.
 
+The broad goal of this project is to build a declarative rewrite engine
+in which domain experts and algorithm programmers can collaborate to
+develop transformation passses on Blaze expressions at a higher level,
+with the end goal being to inform more performant computations and
+scheduling.
+
+Also because Python doesn't have a good term rewriting engine and this
+is an essential part to building a vibrant compiler infastructure around
+CPython.
+
 Usage
 -----
 
@@ -145,7 +155,23 @@ lead to the same result regardless of order. The general problem
 of determining whether a term-rewrite system is confluent is very
 difficult.
 
+**Nonlinear Patterns**
+
+This pattern of this form will match only if all occurrences of the same
+variable in the left-hand side pattern bind to the same value.
+
+```
+foo: f(x,x) -> x
+```
+
+The above matches ``f(1,1)`` but not ``f(1,2)``.
+
+This behavior differs from Haskell and is is to my knowledge only found
+in the Pure programming language.
+
 **As-Patterns**
+
+**Recursion**
 
 Examples
 -------
@@ -153,6 +179,10 @@ Examples
 **Peano**
 
 **SKI**
+
+S = lambda x: lambda y: lambda z: x(z)(y(z))
+K = lambda x: lambda y: x
+I = lambda x: x
 
 **Lambda**
 
@@ -169,7 +199,10 @@ Expr = Var Sym | App Expr Expr | Lam Sym Expr
 Credits
 -------
 
-Inspired by the [StrategoXT](http://strategoxt.org/) project.
+- [StrategoXT](http://strategoxt.org/) project.
 
-Also inspired by the [Basil project](https://code.google.com/p/basil/)
-by Jon Riehl
+- [Basil project](https://code.google.com/p/basil/) by Jon Riehl
+
+- [PLT Scheme](http://download.plt-scheme.org/doc/360/html/mzlib/mzlib-Z-H-25.html#node_chap_25)
+
+- Pure language and the paper and "Left-to-right tree pattern matching" by Albert Gräf

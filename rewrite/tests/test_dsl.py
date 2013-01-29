@@ -35,31 +35,14 @@ EvalIf :
     If(True(), e1, e2) -> e1
 
 PropIf :
-    If(B,e1@F(X),@F(Y)) -> F(If(B,X,Y))
+    If(B,@F(X),@F(Y)) -> F(If(B,X,Y))
 """
 
 def test_patterns_parse():
     dslparse(patterns)
 
 def test_patterns_module():
-    module(patterns)
-
-#------------------------------------------------------------------------
-
-simple_state = """
-foo : A(x,y) -> A(y,x)
-bar : A(x,y) -> A(y,x)
-"""
-
-simple_expected = """
-{'foo': [
-    [0, 1] -> [1, 0]
-]
-}
-"""
-
-def test_state_machine():
-    repr(module(simple_state)) == simple_expected
+    mod = module(patterns)
 
 #------------------------------------------------------------------------
 
@@ -93,3 +76,47 @@ def test_rewrite_simple2():
     rule = mod['bar']
 
     assert rule(a) == c
+
+#------------------------------------------------------------------------
+
+complex_rr = """
+foo : A(x,y) -> B(y,x)
+"""
+
+def test_rewrite_simple3():
+    a = aparse('A(1,2)')
+    b = aparse('B(2,1)')
+
+    mod = module(complex_rr)
+
+    rule = mod['foo']
+
+    assert rule(a) == b
+
+#------------------------------------------------------------------------
+
+#simple_bool = """
+#Eval : Not(True)      -> False
+#Eval : Not(False)     -> True
+#"""
+#
+#def test_rewrite_bool():
+#    from collections import namedtuple
+#
+#    t = namedtuple('True', ())
+#    f = namedtuple('False', ())
+#
+#    sorts = {
+#        'Bool': bool
+#    }
+#
+#    constructors = {
+#        'True'  : t,
+#        'False' : f,
+#    }
+#
+#    mod = module(simple_bool, sorts, constructors)
+#
+#    x = aparse('Not(True)')
+#
+#    res = mod['Eval'](x)

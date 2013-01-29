@@ -46,7 +46,7 @@ def test_parser_sanity():
     parse('Mul(Array(),Array())')
     parse('Mul(Array,Array)')
     parse('Add(2,3{dshape("foo, bar, 2")})')
-    parse('Add(2{dshape("int"),62764584},3.0{dshape("double"),62764408})')
+    parse('Add(2{dshape("int")},3.0{dshape("double")})')
 
 def test_roundtrip():
     a0 = parse(repr(parse('f')))
@@ -67,26 +67,19 @@ def test_roundtrip():
     assert repr(a6) == 'f([1, 2, 3])'
     assert repr(a7) == '(1, 2, 3)'
 
-def test_free():
-    x1 = list(free(parse('f(a,b,c)')))
-    x2 = list(free(parse('f(a,b,g(c,d,e))')))
+def test_matching():
+    matches, _ = match('x', 'x')
+    matches, _ = match('x', 'y')
+    matches, _ = match('x{foo}', 'x{foo}')
 
-    assert x1 == ['a','b','c']
-    assert x2 == ['a','b','c','d','e']
-
-#def test_matching():
-    #match('x', 'x')
-    #match('x', 'y')
-    #match('x{foo}', 'x{foo}')
-
-    #match('f(x,y)', 'f(x,y)')
-    #match('f(x,g(x,y))', 'f(x,g(x,y))')
-    #match('f(<int>,g(x,y))', 'f(1,g(x,y))')
-    #match('f(<int>,g(x,y))', 'f(1,g(x,y))')
-    #match('f(1,<appl(x,y)>)', 'f(1,g(x,y))')
-    #match('f(1,<appl(x,<term>)>)', 'f(1,g(x,3))')
+    matches, _ = match('f(x,y)', 'f(x,y)')
+    matches, _ = match('f(x,g(x,y))', 'f(x,g(x,y))')
+    matches, _ = match('f(<int>,g(x,y))', 'f(1,g(x,y))')
+    matches, _ = match('f(<int>,g(x,y))', 'f(1,g(x,y))')
+    matches, _ = match('f(1,<appl(x,y)>)', 'f(1,g(x,y))')
+    matches, _ = match('f(1,<appl(x,<term>)>)', 'f(1,g(x,3))')
 
 #def test_build():
-    #build('f(<int>)', [aint(1)])
-    #build('f(x, y, g(<int>,<int>))', [aint(1), aint(2)])
-    #build('<appl(x,y)>', [aterm('x', None)])
+#    build('f(<int>)', [aint(1)])
+#    build('f(x, y, g(<int>,<int>))', [aint(1), aint(2)])
+#    build('<appl(x,y)>', [aterm('x', None)])
