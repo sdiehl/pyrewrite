@@ -176,14 +176,6 @@ in the Pure programming language.
 Examples
 -------
 
-**Peano**
-
-**SKI**
-
-S = lambda x: lambda y: lambda z: x(z)(y(z))
-K = lambda x: lambda y: x
-I = lambda x: x
-
 **Lambda**
 
 The simple lambda calculus consists of a set of expressions
@@ -194,7 +186,27 @@ Sym = String
 Expr = Var Sym | App Expr Expr | Lam Sym Expr
 ```
 
-**Python**
+**Peano**
+
+**SKI**
+
+```
+S = lambda x: lambda y: lambda z: x(z)(y(z))
+K = lambda x: lambda y: x
+I = lambda x: x
+```
+
+**ASDL**
+
+TODO
+
+**SymPy**
+
+TODO
+
+**Blaze**
+
+TODO
 
 Credits
 -------
@@ -205,4 +217,4 @@ Credits
 
 - [PLT Scheme](http://download.plt-scheme.org/doc/360/html/mzlib/mzlib-Z-H-25.html#node_chap_25)
 
-- Pure language and the paper and "Left-to-right tree pattern matching" by Albert Gräf
+- Pure and the paper and "Left-to-right tree pattern matching" by Albert Gräf
