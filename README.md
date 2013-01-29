@@ -168,7 +168,23 @@ I = lambda x: x
 
 **ASDL**
 
-TODO
+The Zephyr Abstract Syntax Description Lanuguage (ASDL) is a description
+language designed to describe the tree-like data structures in
+compilers. Specically it underpins the parser of Python itself (
+see ``Parser/Python.asdl`` ).
+
+```cpp
+module Python
+{
+
+	stmt = FunctionDef(identifier name, arguments args,
+	      | For(expr target, expr iter, stmt* body, stmt* orelse)
+	      | While(expr test, stmt* body, stmt* orelse)
+	      | If(expr test, stmt* body, stmt* orelse)
+	      | With(expr context_expr, expr? optional_vars, stmt* body)
+
+}
+```
 
 **SymPy**
 
