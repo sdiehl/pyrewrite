@@ -1,5 +1,4 @@
-from terms import *
-from parse import parse
+from terms import * # TODO: tsk, tsk
 import astnodes as ast
 
 placeholders = {
@@ -16,15 +15,11 @@ class NoMatch(Exception):
     pass
 
 #------------------------------------------------------------------------
-#
+# Traversal
 #------------------------------------------------------------------------
 
 def init(xs):
     for x in xs:
-        return x
-
-def tail(xs):
-    for x in reversed(xs):
         return x
 
 def aterm_zip(a, b):
@@ -94,6 +89,10 @@ def aterm_splice(a, elts):
             yield elts.pop(0)
     else:
         raise NotImplementedError
+
+#------------------------------------------------------------------------
+# Rewriting
+#------------------------------------------------------------------------
 
 # TODO: warn on nested as pattern
 def free(a):
@@ -196,35 +195,3 @@ def fold(rpat, subst, cap):
 # rewriter
 def hylo(ana, cata, s):
     return cata(ana(s))
-
-#------------------------------------------------------------------------
-# Inject
-#------------------------------------------------------------------------
-
-# fold in the pattern results in binding
-def match(pattern, subject, *captures):
-    # TODO: migrate to dict to match stratego bindings
-    captures = []
-
-    p = pattern
-    s = subject
-
-    for matches, capture in aterm_zip(p,s):
-        if not matches:
-            return False, []
-        elif matches and capture:
-            captures += [capture]
-    return True, captures
-
-def matches(pattern, subject):
-    p = pattern
-    s = subject
-
-    for matches, capture in aterm_zip(p,s):
-        if not matches:
-            return False
-    return True
-
-def build(pattern, values):
-    vals = list(values)
-    return init(aterm_splice(pattern,vals))

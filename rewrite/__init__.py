@@ -1,3 +1,5 @@
-from matching import match, matches, build
 from parse import parse
+from dsl import dslparse
+
 aparse = parse
+dparse = dslparse

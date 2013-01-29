@@ -1,5 +1,4 @@
-from rewrite.matching import parse, match, build, free
-from rewrite.terms import *
+from rewrite import parse
 
 def test_parser_sanity():
     a0 = parse('f')
@@ -66,20 +65,3 @@ def test_roundtrip():
     assert repr(a5) == 'f(1, 2, 3)'
     assert repr(a6) == 'f([1, 2, 3])'
     assert repr(a7) == '(1, 2, 3)'
-
-def test_matching():
-    matches, _ = match('x', 'x')
-    matches, _ = match('x', 'y')
-    matches, _ = match('x{foo}', 'x{foo}')
-
-    matches, _ = match('f(x,y)', 'f(x,y)')
-    matches, _ = match('f(x,g(x,y))', 'f(x,g(x,y))')
-    matches, _ = match('f(<int>,g(x,y))', 'f(1,g(x,y))')
-    matches, _ = match('f(<int>,g(x,y))', 'f(1,g(x,y))')
-    matches, _ = match('f(1,<appl(x,y)>)', 'f(1,g(x,y))')
-    matches, _ = match('f(1,<appl(x,<term>)>)', 'f(1,g(x,3))')
-
-#def test_build():
-#    build('f(<int>)', [aint(1)])
-#    build('f(x, y, g(<int>,<int>))', [aint(1), aint(2)])
-#    build('<appl(x,y)>', [aterm('x', None)])
