@@ -58,25 +58,42 @@ terms from environments of bindings based a construction pattern.
 **Blocks**
 
 ```
-Eval : Not(True)      -> False
-Eval : Not(False)     -> True
-Eval : And(True, x)   -> x
-Eval : And(x, True)   -> x
-Eval : And(False, x)  -> False
-Eval : And(x, False)  -> False
-Eval : Or(True, x)    -> True
-Eval : Or(x, True)    -> True
-Eval : Or(False, x)   -> x
-Eval : Or(x, False)   -> x
-Eval : Impl(True, x)  -> x
-Eval : Impl(x, True)  -> True
-Eval : Impl(False, x) -> True
-Eval : Eq(False, x)   -> Not(x)
-Eval : Eq(x, False)   -> Not(x)
-Eval : Eq(True, x)    -> x
-Eval : Eq(x, True)    -> x
+E : Impl(x, y) -> Or(Not(x), y)
+E : Eq(x, y) -> And(Impl(x, y), Impl(y, x))
 
-eval = bottomup(repeat(Eval))
+E : Not(Not(x)) -> x
+
+E : Not(And(x, y)) -> Or(Not(x), Not(y))
+E : Not(Or(x, y)) -> And(Not(x), Not(y))
+
+E : And(Or(x, y), z) -> Or(And(x, z), And(y, z))
+E : And(z, Or(x, y)) -> Or(And(z, x), And(z, y))
+
+dnf = repeat(topdown(E) <+ id)
+```
+
+Compiles into a rewrite environement with the following
+signature:
+
+```
+{'E': [
+    Impl(<term>, <term>) => Or(Not(<term>), <term>) ::
+	 ['x', 'y'] -> ['x', 'y']
+    Eq(<term>, <term>) => And(Impl(<term>, <term>), Impl(<term>, <term>)) ::
+	 ['x', 'y'] -> ['x', 'y', 'y', 'x']
+    Not(Not(<term>)) => <term> ::
+	 ['x'] -> ['x']
+    Not(And(<term>, <term>)) => Or(Not(<term>), Not(<term>)) ::
+	 ['x', 'y'] -> ['x', 'y']
+    Not(Or(<term>, <term>)) => And(Not(<term>), Not(<term>)) ::
+	 ['x', 'y'] -> ['x', 'y']
+    And(Or(<term>, <term>), <term>) => Or(And(<term>, <term>), And(<term>, <term>)) ::
+	 ['x', 'y', 'z'] -> ['x', 'z', 'y', 'z']
+    And(<term>, Or(<term>, <term>)) => Or(And(<term>, <term>), And(<term>, <term>)) ::
+	 ['z', 'x', 'y'] -> ['z', 'x', 'z', 'y']
+]
+,
+ 'dnf': Repeat(Choice(Topdown(E),function))}
 ```
 
 **Strategies**

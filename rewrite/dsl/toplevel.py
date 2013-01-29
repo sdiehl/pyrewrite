@@ -105,9 +105,12 @@ class RuleBlock(object):
 #------------------------------------------------------------------------
 
 def build_strategy(label, env, comb, args):
-    env = env.copy() # mutable state is evil
+    env = env.copy()
+
     self = object() # forward declaration since rules can be self-recursive
     comb = combinators[comb]
+
+    env.update(combinators)
 
     sargs = []
 

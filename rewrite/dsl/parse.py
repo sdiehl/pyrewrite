@@ -42,10 +42,6 @@ infix_combinators = [
     ';',
 ]
 
-combinators = [
-    'innermost',
-]
-
 tokens = (
     'NAME', 'INT', 'DOUBLE', 'ARROW', 'STRING', 'INCOMB', 'AS',
     #, 'CLAUSE'

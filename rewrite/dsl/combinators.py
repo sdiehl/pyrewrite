@@ -79,7 +79,7 @@ class All(object):
 
     def __call__(self, o):
         if isinstance(o, terms.AAppl):
-            return AAppl(o.spine, map(self.s, o.args))
+            return terms.AAppl(o.spine, map(self.s, o.args))
         else:
             return o
 

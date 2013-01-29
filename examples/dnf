@@ -9,5 +9,4 @@ E : Not(Or(x, y)) -> And(Not(x), Not(y))
 E : And(Or(x, y), z) -> Or(And(x, z), And(y, z))
 E : And(z, Or(x, y)) -> Or(And(z, x), And(z, y))
 
-foo = repeat(topdown(E) <+ id)
-dnf = bottomup(E)
+dnf = repeat(topdown(E) <+ id)
